@@ -17,3 +17,5 @@ fi
 echo "Generating new migration: \"$MESSAGE\""
 alembic revision --autogenerate -m "$MESSAGE"
 alembic upgrade head
+
+python seed_dev_data.py

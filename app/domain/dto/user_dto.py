@@ -10,12 +10,12 @@ class UserCreateDTO(BaseModel):
     grade: UserGrade
 
 class UserReadDTO(BaseModel):
-    user_id: UUID
     name: str
     email: EmailStr
     role: UserRole
     grade: UserGrade
     created_at: datetime
+    project_id : UUID
 
     class Config:
         orm_mode = True

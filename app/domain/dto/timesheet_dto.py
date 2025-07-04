@@ -10,7 +10,6 @@ class TimeEntryDTO(BaseModel):
     description: str
 
 class TimesheetCreateDTO(BaseModel):
-    user_id: UUID
     week_start: date
     entries: List[TimeEntryDTO]
 
@@ -18,7 +17,6 @@ class TimesheetReadDTO(BaseModel):
     timesheet_id: UUID
     user_id: UUID
     week_start: date
-    entries: List[TimeEntryDTO]
     approved: bool
 
     class Config:

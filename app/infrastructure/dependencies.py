@@ -7,4 +7,5 @@ def get_user_service():
     return UserService(UserRepository())
 
 def get_timesheet_service():
-    return TimesheetService(TimesheetRepository())
+    return TimesheetService(timesheet_repo = TimesheetRepository,
+                            user_repo = UserRepository)

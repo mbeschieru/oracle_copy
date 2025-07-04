@@ -11,7 +11,7 @@ import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),'..')))
 
 from app.infrastructure.config.db_config import Base
-from app.infrastructure.db.models import user_models,timesheet_models
+from app.infrastructure.db.models import user_models,timesheet_models,project_models
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
