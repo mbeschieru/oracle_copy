@@ -2,7 +2,6 @@ from uuid import UUID
 from datetime import date
 from app.domain.repositories.timesheet_repository import TimesheetRepositoryInterface
 from app.domain.entities.timesheet import Timesheet
-from app.domain.exceptions.base import DomainException
 from app.use_case.validators.role_validator import require_manager
 from app.domain.entities.user import User
 from app.domain.dto.timesheet_dto import TimesheetReadDTO

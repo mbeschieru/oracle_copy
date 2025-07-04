@@ -1,4 +1,4 @@
-from pydantinc import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr
 from uuid import UUID
 from datetime import datetime
 from app.domain.enums import UserRole, UserGrade

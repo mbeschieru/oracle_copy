@@ -1,10 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException,Header
 from uuid import UUID
 from datetime import date
 from app.domain.dto.timesheet_dto import TimesheetCreateDTO, TimesheetReadDTO
 from app.use_case.services.timesheet_service import TimesheetService
 from app.infrastructure.dependencies import get_timesheet_service
-from app.domain.exceptions.factory import timesheet_not_found
+from app.domain.exceptions.factory_timsheet import timesheet_not_found
+from app.use_case.validators.user_identity import assert_user_identity_matches
+
 
 router = APIRouter(prefix="/timesheets", tags=["Timesheets"])
 
@@ -25,8 +27,12 @@ def get_timesheet_week(user_id: UUID, week_start: date, service: TimesheetServic
         raise HTTPException(status_code=404, detail=str(e))
 
 @router.post("/", response_model=dict)
-def submit_timesheet(data: TimesheetCreateDTO, service: TimesheetService = Depends(get_timesheet_service)):
+def submit_timesheet(
+    data: TimesheetCreateDTO,
+    x_user_id : str = Header(..., description = "User ID passed fron frontend"),
+    service: TimesheetService = Depends(get_timesheet_service)):
     try:
+        assert_user_identity_matches(data.user_id, x_user_id)
         return service.submit_timesheet(data)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))

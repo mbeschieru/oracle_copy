@@ -11,6 +11,11 @@ class TimesheetRepositoryInterface(ABC):
         pass
 
     @abstractmethod
+    def get_by_id (self , timesheet_id : id ) -> Timesheet:
+        """Get timesheet by id"""
+        pass
+
+    @abstractmethod
     def get_by_user_and_week(self, user_id: UUID, week_start: str) -> Optional[Timesheet]:
         """Get a specific timesheet for a given week"""
         pass

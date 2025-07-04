@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
 from uuid import UUID
 from app.domain.dto.user_dto import UserLoginDTO, UserReadDTO
-from app.use_cases.services.user_service import UserService
+from app.use_case.services.user_service import UserService
 from app.infrastructure.dependencies import get_user_service  # we'll define this
-from app.domain.exceptions.factory import user_not_found
+from app.domain.exceptions.factory_user import user_not_found
 
 router = APIRouter(prefix="/users", tags=["Users"])
 

@@ -1,0 +1,29 @@
+1. python3 -m venv venv pt virtual env
+2. docker-compose up (baza de date mssql)
+3. alembic face migrarile , folder alembic importati modelele in env.py face singur 
+4. pt generare de migrari - 
+
+Aici este olk mai complicat . Comanda basic pentru migrari este:  alembic revision --autogenerate -m "initial schema"
+
+Erori care le am vazut eu - 
+
+1.libodbc.so.2: cannot open shared object file: No such file or directory
+
+sudo apt update
+sudo apt install -y unixodbc-dev
+sudo apt install -y msodbcsql17
+
+curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
+sudo curl https://packages.microsoft.com/config/ubuntu/20.04/prod.list -o /etc/apt/sources.list.d/mssql-release.list
+sudo apt update
+sudo ACCEPT_EULA=Y apt install -y msodbcsql17
+
+
+2. [Microsoft][ODBC Driver 17 for SQL Server] Client unable to establish connection because an error was encountered during handshakes before login.
+
+Era de la parola : username : sa parola  : MySecure@123
+
+
+Bun sa nu uitati sa creati baza de date timesheet_db; 
+
+Dupa ce faceti migrarile le aplicatii , alembic upgrade head

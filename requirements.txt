@@ -7,3 +7,6 @@ psycopg2-binary
 streamlit
 python-dotenv
 pydantic
+streamlit
+alembic
+pyodbc
