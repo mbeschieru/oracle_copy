@@ -29,6 +29,7 @@ class TimesheetService:
         timesheet = self.repo.get_by_id(timesheet_id)
         if not timesheet:
             raise timesheet_not_found(str(timesheet_id))
+        return timesheet
 
     def get_timesheets_for_user(self, requester_id : UUID , target_user_id: UUID):
         if requester_id != target_user_id:
