@@ -14,4 +14,4 @@ class UserModel(Base):
     role = Column(Enum(UserRole), nullable=False)
     grade = Column(Enum(UserGrade), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
-    project_id = Column(CHAR(36), ForeignKey("projects.project_id"), nullable = False)
+    project_id = Column(CHAR(36), ForeignKey("projects.project_id"), nullable = True)
