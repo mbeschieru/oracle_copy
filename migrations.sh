@@ -4,7 +4,7 @@ set -e
 
 MESSAGE=${1:-"fix schema"}
 ALEMBIC_DIR="./alembic/versions"
-DB_NAME="oracle_db"
+DB_NAME=$(grep DATABASE_URL .env | sed -E 's|.*/(.*)\?.*|\1|')
 SA_PASSWORD="MySecure@123"  # Make sure this matches docker-compose.yml
 MSSQL_CONTAINER="timesheet-mssql"
 
@@ -22,7 +22,8 @@ sleep 10
 echo "========================================"
 echo "🧠 Step 2: Checking if database \"$DB_NAME\" exists"
 echo "========================================"
-docker exec -i $MSSQL_CONTAINER /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "$SA_PASSWORD" -Q "IF DB_ID('$DB_NAME') IS NULL CREATE DATABASE [$DB_NAME];"
+
+docker run --rm --network oracle_copy_default mcr.microsoft.com/mssql-tools /opt/mssql-tools/bin/sqlcmd -S timesheet-mssql -U sa -P 'MySecure@123' -Q "IF DB_ID('$DB_NAME') IS NULL CREATE DATABASE [$DB_NAME];"
 
 echo "========================================"
 echo "🧹 Step 3: Cleaning old migrations"
@@ -37,6 +38,7 @@ fi
 echo "========================================"
 echo "🛠️ Step 4: Generating new migration: \"$MESSAGE\""
 echo "========================================"
+
 alembic revision --autogenerate -m "$MESSAGE"
 
 echo "========================================"

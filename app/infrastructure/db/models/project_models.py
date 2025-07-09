@@ -9,4 +9,4 @@ class ProjectModel(Base):
     project_id = Column(CHAR(36), primary_key=True, default= lambda: str(uuid.uuid4()))
     name = Column(String(100), nullable = False)
     description = Column(String(300))
-    manager_id = Column(CHAR(36), ForeignKey("users.user_id"), nullable = False)
+    manager_id = Column(CHAR(36), nullable = True)

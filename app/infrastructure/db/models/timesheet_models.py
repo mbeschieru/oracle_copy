@@ -8,8 +8,9 @@ class TimesheetModel(Base):
     __tablename__ = "timesheets"
 
     timesheet_id =  Column(CHAR(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    user_id = Column(CHAR(36), ForeignKey("users.user_id"))
+    user_id = Column(CHAR(36), ForeignKey("users.user_id") , nullable= True)
     week_start = Column(Date, nullable=False)
     approved = Column(Boolean, default=False)
 
-    user = relationship("UserModel", backref="timesheets")
+    
+    

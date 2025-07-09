@@ -15,8 +15,7 @@ class UserReadDTO(BaseModel):
     role: UserRole
     grade: UserGrade
     created_at: datetime
-    project_id : UUID
-
+    
     class Config:
         orm_mode = True
 
