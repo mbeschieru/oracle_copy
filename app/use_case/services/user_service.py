@@ -23,5 +23,4 @@ class UserService:
         return UserReadDTO.from_orm(user)
 
     def get_all_users(self):
-        users = self.user_repo.get_all_users()
-        return UserReadDTO.from_orm(users)
+        return self.user_repo.get_all_users()

@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, ConfigDict
 from uuid import UUID
 from datetime import datetime
 from app.domain.enums import UserRole, UserGrade
@@ -10,14 +10,14 @@ class UserCreateDTO(BaseModel):
     grade: UserGrade
 
 class UserReadDTO(BaseModel):
+    user_id: UUID
     name: str
     email: EmailStr
     role: UserRole
     grade: UserGrade
     created_at: datetime
     
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 class UserLoginDTO(BaseModel):
     email: EmailStr

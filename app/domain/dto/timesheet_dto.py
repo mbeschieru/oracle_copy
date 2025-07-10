@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from uuid import UUID
 from datetime import date
 from typing import List
@@ -19,5 +19,4 @@ class TimesheetReadDTO(BaseModel):
     week_start: date
     approved: bool
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
