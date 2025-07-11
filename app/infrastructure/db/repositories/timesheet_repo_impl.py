@@ -1,6 +1,7 @@
 from app.domain.repositories.timesheet_repository import TimesheetRepositoryInterface
 from app.infrastructure.config.db_config import SessionLocal
 from app.infrastructure.db.models.timesheet_models import TimesheetModel
+from uuid import UUID
 
 class TimesheetRepository(TimesheetRepositoryInterface):
 
@@ -25,4 +26,12 @@ class TimesheetRepository(TimesheetRepositoryInterface):
 
     def update(self, timesheet: TimesheetModel):
         self.db.merge(timesheet)
+        self.db.commit()
+
+    def approve(self, timesheet_id: UUID) -> None:
+        timesheet = self.get_by_id(timesheet_id)
+        if not timesheet:
+            raise Exception(f"Timesheet {timesheet_id} not found")
+
+        timesheet.approved = True
         self.db.commit()
