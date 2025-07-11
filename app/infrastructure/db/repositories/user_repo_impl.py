@@ -13,5 +13,8 @@ class UserRepository(UserRepositoryInterface):
     def get_by_id(self, user_id):
         return self.db.query(UserModel).filter(UserModel.user_id == user_id).first()
 
-    def get_all_users(self):
-        return self.db.query(UserModel).all()
+    def get_all_users(self, offset=0, limit=10):
+        return self.db.query(UserModel).order_by(UserModel.created_at).offset(offset).limit(limit).all()
+
+    def get_users_by_project(self, project_id, offset=0, limit=10):
+        return self.db.query(UserModel).filter(UserModel.project_id == project_id, UserModel.role != 'manager').order_by(UserModel.created_at).offset(offset).limit(limit).all()

@@ -22,5 +22,8 @@ class UserService:
             raise user_not_found(str(user_id))
         return UserReadDTO.from_orm(user)
 
-    def get_all_users(self):
-        return self.user_repo.get_all_users()
+    def get_all_users(self, offset=0, limit=10):
+        return self.user_repo.get_all_users(offset=offset, limit=limit)
+
+    def get_users_by_project(self, project_id, offset=0, limit=10):
+        return self.user_repo.get_users_by_project(project_id, offset=offset, limit=limit)

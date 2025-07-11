@@ -28,6 +28,9 @@ if config.config_file_name is not None:
 
 load_dotenv()
 DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    # fallback to alembic.ini if .env is not set
+    DATABASE_URL = config.get_main_option("sqlalchemy.url")
 
 
 # add your model's MetaData object here
@@ -54,7 +57,7 @@ def run_migrations_offline() -> None:
     script output.
 
     """
-    url = config.get_main_option("sqlalchemy.url")
+    url = DATABASE_URL
     context.configure(
         url=url,
         target_metadata=target_metadata,

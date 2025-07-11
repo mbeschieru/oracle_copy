@@ -18,5 +18,8 @@ class TimesheetReadDTO(BaseModel):
     user_id: UUID
     week_start: date
     approved: bool
+    status: str
+    status_description: str | None = None
+    entries: List[TimeEntryDTO] = []
 
     model_config = ConfigDict(from_attributes=True)
