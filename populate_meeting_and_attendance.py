@@ -83,17 +83,23 @@ def populate_meeting_and_attendance():
         duration_minutes=duration_minutes
     )
     db.add(meeting)
-    db.flush()
+    db.flush()  # asigurăm salvarea meeting_id
+
     print(f"Meeting inserat: {title} la {start_datetime}, {duration_minutes} minute.")
 
     participants = extract_attendance_data(lines)
-    inserted, skipped = 0, 0
+    inserted, skipped, duplicates_in_csv = 0, 0, 0
+    seen_emails = set()
 
     for row in participants:
-        if row["Email"].strip().lower() == "email":
-            continue
-
         email = row["Email"].strip().lower()
+        if email == "email":
+            continue
+        if email in seen_emails:
+            duplicates_in_csv += 1
+            continue
+        seen_emails.add(email)
+
         check_in_str = row["First Join"]
         check_out_str = row["Last Leave"]
         duration_str = row["In-Meeting Duration"]
@@ -104,27 +110,35 @@ def populate_meeting_and_attendance():
             skipped += 1
             continue
 
-        try:
-            attendance = AttendanceModel(
-                attendance_id=str(uuid.uuid4()),
-                meeting_id=meeting_id,
-                user_id=user.user_id,
-                day=parse_day_string(check_in_str),
-                check_in=parse_time_string(check_in_str),
-                check_out=parse_time_string(check_out_str),
-                time_spent=parse_duration_to_minutes(duration_str)
-            )
-            db.add(attendance)
-            inserted += 1
-        except Exception as e:
-            print(f"Eroare la procesarea participantului {email}: {e}")
+        # Verificare în baza de date dacă deja există o prezență
+        already_exists = db.query(AttendanceModel).filter_by(
+            meeting_id=meeting_id,
+            user_id=user.user_id
+        ).first()
+
+        if already_exists:
             skipped += 1
+            continue
+
+        attendance = AttendanceModel(
+            attendance_id=str(uuid.uuid4()),
+            meeting_id=meeting_id,
+            user_id=user.user_id,
+            day=parse_day_string(check_in_str),
+            check_in=parse_time_string(check_in_str),
+            check_out=parse_time_string(check_out_str),
+            time_spent=parse_duration_to_minutes(duration_str)
+        )
+
+        db.add(attendance)
+        inserted += 1
 
     db.commit()
     db.close()
 
     print(f"Prezențe adăugate: {inserted}")
-    print(f"Participanți săriți (email inexistent sau eroare): {skipped}")
+    print(f"Participanți săriți (email inexistent sau deja în DB): {skipped}")
+    print(f"Participanți ignorați (duplicat în CSV): {duplicates_in_csv}")
 
 if __name__ == "__main__":
     populate_meeting_and_attendance()
