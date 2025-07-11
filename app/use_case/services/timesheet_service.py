@@ -1,6 +1,5 @@
 from uuid import UUID
 from datetime import date
-import uuid
 from app.domain.exceptions.factory_user import user_not_found
 from app.domain.repositories.timesheet_repository import TimesheetRepositoryInterface
 from app.domain.repositories.user_repository import UserRepositoryInterface
@@ -9,6 +8,8 @@ from app.use_case.validators.role_validator import require_manager
 from app.domain.entities.user import User
 from app.domain.dto.timesheet_dto import TimesheetCreateDTO, TimesheetReadDTO
 from app.domain.enums.enums import UserRole
+from app.use_case.validators.user_identity import assert_user_can_access_user
+
 
 from app.domain.exceptions.factory_timsheet import (
     timesheet_not_found,
@@ -23,7 +24,7 @@ class TimesheetService:
 
     def __init__(self, timesheet_repo: TimesheetRepositoryInterface , user_repo : UserRepositoryInterface):
         self.repo = timesheet_repo
-        self.user_repo = UserRepositoryInterface
+        self.user_repo = user_repo
 
     def get_timesheet_by_id(self , timesheet_id : UUID):
         timesheet = self.repo.get_by_id(timesheet_id)
@@ -31,36 +32,18 @@ class TimesheetService:
             raise timesheet_not_found(str(timesheet_id))
         return timesheet
 
-    def get_timesheets_for_user(self, requester_id : UUID , target_user_id: UUID):
-        if requester_id != target_user_id:
-           requester = self.user_repo.get_by_id(requester_id)
-           target_user= self.user_repo.get_by_id(target_user_id)
+    def get_timesheets_for_user(self, requester_id: UUID, target_user_id: UUID):
+        assert_user_can_access_user(requester_id, target_user_id, self.user_repo)
 
-           if not requester or not target_user :
-                raise user_timesheet_not_found(str(target_user_id))
-           
-           if requester.role != UserRole.MANAGER or requester.project_id != target_user.project_id:
-                raise permission_denied("You may only view your own timesheets or those of employees on your project.")
-
-        timesheets =self.repo.get_by_user(target_user_id)
+        timesheets = self.repo.get_by_user(target_user_id)
         if not timesheets:
             raise user_timesheet_not_found(str(target_user_id))
-        
+
         return [TimesheetReadDTO.from_orm(ts) for ts in timesheets]
+
         
-
-
     def get_timesheet_by_week(self, requester_id: UUID, target_user_id: UUID, week_start: date):
-        if requester_id != target_user_id:
-
-            requester = self.user_repo.get_by_id(requester_id)
-            target_user = self.user_repo.get_by_id(target_user_id)
-
-            if not requester or not target_user:
-                raise user_timesheet_not_found(str(target_user_id))
-
-            if requester.role != UserRole.MANAGER or requester.project_id != target_user.project_id:
-                raise permission_denied("Unauthorized to view this user's timesheet.")
+        assert_user_can_access_user(requester_id, target_user_id, self.user_repo)
 
         ts = self.repo.get_by_user_and_week(target_user_id, str(week_start))
         if not ts:
