@@ -11,7 +11,7 @@ import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),'..')))
 
 from app.infrastructure.config.db_config import Base
-from app.infrastructure.db.models import user_models,timesheet_models,project_models
+from app.infrastructure.db.models import user_models,timesheet_models,project_models, meeting_models, attendance_models
 
 from dotenv import load_dotenv
 import os
