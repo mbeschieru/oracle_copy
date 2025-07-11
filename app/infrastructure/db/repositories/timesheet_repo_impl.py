@@ -1,6 +1,6 @@
 from app.domain.repositories.timesheet_repository import TimesheetRepositoryInterface
 from app.infrastructure.config.db_config import SessionLocal
-from app.infrastructure.db.models.timesheet_models import TimesheetModel
+from app.infrastructure.db.models.timesheet_models import TimesheetModel, TimeEntryModel
 from uuid import UUID
 
 class TimesheetRepository(TimesheetRepositoryInterface):
@@ -20,9 +20,33 @@ class TimesheetRepository(TimesheetRepositoryInterface):
     def get_by_id(self, timesheet_id):
         return self.db.query(TimesheetModel).filter(TimesheetModel.timesheet_id == timesheet_id).first()
 
-    def save(self, timesheet: TimesheetModel):
-        self.db.add(timesheet)
-        self.db.commit()
+    def save(self, timesheet):
+        existing = self.get_by_id(timesheet.timesheet_id)
+        if existing:
+            # Update fields
+            existing.approved = timesheet.approved
+            existing.status = timesheet.status
+            existing.status_description = timesheet.status_description
+            self.db.commit()
+        else:
+            orm_timesheet = TimesheetModel(
+                timesheet_id=str(timesheet.timesheet_id),
+                user_id=str(timesheet.user_id),
+                week_start=timesheet.week_start,
+                approved=timesheet.approved,
+                status=timesheet.status,
+                status_description=timesheet.status_description
+            )
+            orm_timesheet.entries = [
+                TimeEntryModel(
+                    day=entry.day,
+                    hours=entry.hours,
+                    project_id=str(entry.project_id),
+                    description=entry.description
+                ) for entry in timesheet.entries
+            ]
+            self.db.add(orm_timesheet)
+            self.db.commit()
 
     def update(self, timesheet: TimesheetModel):
         self.db.merge(timesheet)

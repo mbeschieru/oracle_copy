@@ -1,4 +1,5 @@
 from app.infrastructure.config.db_config import SessionLocal
+
 from app.infrastructure.db.models.user_models import UserModel
 from app.infrastructure.db.models.project_models import ProjectModel
 from app.infrastructure.db.models.timesheet_models import TimesheetModel
@@ -53,15 +54,5 @@ db.add(employee)
 db.commit()
 print("✅ Employee created and linked to project.")
 
-# Step 5: Create a timesheet (no entries yet)
-timesheet = TimesheetModel(
-    timesheet_id=str(uuid.uuid4()),
-    user_id=employee.user_id,
-    week_start=date(2025, 7, 1),
-    approved=False
-)
-db.add(timesheet)
-db.commit()
-print("✅ Timesheet created for employee.")
 
 print("🎉 Seed process complete.")

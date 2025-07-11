@@ -16,6 +16,7 @@ class UserReadDTO(BaseModel):
     role: UserRole
     grade: UserGrade
     created_at: datetime
+    project_id: UUID | None = None
     
     model_config = ConfigDict(from_attributes=True)
 

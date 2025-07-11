@@ -1,13 +1,13 @@
 from fastapi import HTTPException, status, Security
-from fastapi.security.api_key import APIKeyHeader
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from uuid import UUID
 
-user_id_header = APIKeyHeader(name="X-User-Id", auto_error=False)
+security = HTTPBearer()
 
-def get_authenticated_user_id(x_user_id: str = Security(user_id_header)) -> UUID:
-    if not x_user_id:
-        raise HTTPException(status_code=401, detail="Missing X-User-Id header")
+def get_authenticated_user_id(credentials: HTTPAuthorizationCredentials = Security(security)) -> UUID:
+    if not credentials or not credentials.credentials:
+        raise HTTPException(status_code=401, detail="Missing Bearer token")
     try:
-        return UUID(x_user_id)
+        return UUID(credentials.credentials)
     except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid UUID format")
+        raise HTTPException(status_code=400, detail="Invalid UUID format in Bearer token")
