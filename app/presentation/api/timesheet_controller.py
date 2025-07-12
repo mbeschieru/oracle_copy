@@ -7,21 +7,21 @@ from app.infrastructure.dependencies import get_timesheet_service
 from app.domain.exceptions.factory_timsheet import timesheet_not_found
 from app.use_case.validators.user_identity import assert_user_identity_matches
 from app.domain.dto.timesheet_dto import TimeEntryDTO
-from app.presentation.dependencies.header_user import get_authenticated_user_id
+from app.presentation.dependencies.jwt_auth import get_current_user_id
 from pydantic import BaseModel
 
 
 router = APIRouter(prefix="/timesheets", tags=["Timesheets"])
 
 @router.get("/user/{target_user_id}", response_model=list[TimesheetReadDTO])
-def get_user_timesheets(target_user_id: UUID, user_id: UUID = Depends(get_authenticated_user_id), service: TimesheetService = Depends(get_timesheet_service)):
+def get_user_timesheets(target_user_id: UUID, user_id: UUID = Depends(get_current_user_id), service: TimesheetService = Depends(get_timesheet_service)):
    return service.get_timesheets_for_user(user_id, target_user_id)
 
 @router.get("/user/{target_user_id}/week", response_model=TimesheetReadDTO)
 def get_by_week(
     target_user_id: UUID,
     week_start: date,
-    user_id: UUID = Depends(get_authenticated_user_id),
+    user_id: UUID = Depends(get_current_user_id),
     service: TimesheetService = Depends(get_timesheet_service)
 ):
     return service.get_timesheet_by_week(user_id, target_user_id, week_start)
@@ -30,7 +30,7 @@ def get_by_week(
 @router.post("/", response_model=dict)
 def submit_timesheet(
     data: TimesheetCreateDTO,
-    user_id: UUID = Depends(get_authenticated_user_id),
+    user_id: UUID = Depends(get_current_user_id),
     service: TimesheetService = Depends(get_timesheet_service)
 ):
      return service.submit_timesheet(data, user_id)
@@ -51,7 +51,7 @@ class TimesheetActionDTO(BaseModel):
 def approve_timesheet(
     timesheet_id: UUID,
     data: TimesheetActionDTO = Body(...),
-    user_id: UUID = Depends(get_authenticated_user_id),
+    user_id: UUID = Depends(get_current_user_id),
     service: TimesheetService = Depends(get_timesheet_service)
 ):
     try:
@@ -79,7 +79,7 @@ def approve_timesheet(
 def decline_timesheet(
     timesheet_id: UUID,
     data: TimesheetActionDTO = Body(...),
-    user_id: UUID = Depends(get_authenticated_user_id),
+    user_id: UUID = Depends(get_current_user_id),
     service: TimesheetService = Depends(get_timesheet_service)
 ):
     try:

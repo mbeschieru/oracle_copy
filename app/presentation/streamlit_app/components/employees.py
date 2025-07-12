@@ -12,8 +12,8 @@ BACKEND_URL = "http://localhost:8000"
 
 # Helper to get auth header
 def get_auth_header():
-    user = st.session_state.user
-    return {"Authorization": f"Bearer {user['user_id']}"}
+    token = st.session_state.token
+    return {"Authorization": f"Bearer {token}"}
 
 # Helper to get all projects as a dict {project_id: project_name}
 def get_project_map():

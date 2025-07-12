@@ -1,13 +1,15 @@
 import csv
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from app.infrastructure.config.db_config import SessionLocal
 from app.infrastructure.db.models.user_models import UserModel
+from app.infrastructure.db.models.project_models import ProjectModel
+from app.infrastructure.config.jwt_config import get_password_hash
 
 CSV_PATH = "Dava.csv"
-PROJECT_ID = "fb3e3ef1-14ae-4d2f-9694-28ab9f1f38c1"
 DEFAULT_ROLE = "employee"
 DEFAULT_GRADE = "junior"
+DEFAULT_PASSWORD = "Strong123@"
 
 def load_participants(file_path):
     with open(file_path, encoding="ISO-8859-1") as f:
@@ -22,6 +24,11 @@ def load_participants(file_path):
 
     return list(csv.DictReader(lines[start_idx:], skipinitialspace=True))
 
+def get_project(db):
+    existing_project = db.query(ProjectModel).first()
+    print(f"Using existing project: {existing_project.name} (ID: {existing_project.project_id})")
+    return existing_project.project_id
+
 def populate_users():
     db = SessionLocal()
     participants = load_participants(CSV_PATH)
@@ -29,6 +36,8 @@ def populate_users():
     skipped = 0
 
     try:
+        project_id = get_project(db)
+        
         for row in participants:
             name = row.get("Name", "").strip()
             email = row.get("Email", "").strip().lower()
@@ -40,14 +49,17 @@ def populate_users():
                 skipped += 1
                 continue
 
+            user_project_id = project_id if inserted < 10 else None
+            
             user = UserModel(
                 user_id=str(uuid.uuid4()),
                 name=name,
                 email=email,
+                password_hash=get_password_hash(DEFAULT_PASSWORD),
                 role=DEFAULT_ROLE,
                 grade=DEFAULT_GRADE,
-                created_at=datetime.utcnow(),
-                project_id=PROJECT_ID
+                created_at=datetime.now(timezone.utc),
+                project_id=user_project_id
             )
 
             db.add(user)
@@ -62,6 +74,7 @@ def populate_users():
     except Exception as e:
         db.rollback()
         print(" Eroare la inserare:", e)
+        raise
     finally:
         db.close()
 

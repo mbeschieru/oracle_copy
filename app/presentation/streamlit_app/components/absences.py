@@ -6,8 +6,8 @@ from uuid import uuid4
 BACKEND_URL = "http://localhost:8000"
 
 def get_auth_header():
-    user = st.session_state.user
-    return {"Authorization": f"Bearer {user['user_id']}"}
+    token = st.session_state.token
+    return {"Authorization": f"Bearer {token}"}
 
 def get_week_start(selected_date):
     return selected_date - timedelta(days=selected_date.weekday())
@@ -94,17 +94,29 @@ def absences_dashboard():
         from app.presentation.streamlit_app.components.employees import get_employees_for_project
         employees = get_employees_for_project(project_id, get_auth_header())
         user_map = {e["user_id"]: e for e in employees}
-        # Employee availability modal
-        if st.button("Show Employee Availability for Week"):
+        # Employee availability toggle
+        show_availability = st.checkbox("Show Employee Availability for Week", key="show_availability")
+        if show_availability:
             absent_user_ids = {a["user_id"] for a in mgr_absences if a["status"] == "accepted"}
             available = [e for e in employees if e["user_id"] not in absent_user_ids]
             absent = [e for e in employees if e["user_id"] in absent_user_ids]
-            st.markdown("### Available Employees:")
-            for e in available:
-                st.markdown(f"- {e['name']} ({e['email']})")
-            st.markdown("### Absent Employees:")
-            for e in absent:
-                st.markdown(f"- {e['name']} ({e['email']})")
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                st.markdown("### ✅ Available Employees:")
+                if available:
+                    for e in available:
+                        st.markdown(f"- {e['name']} ({e['email']})")
+                else:
+                    st.info("All employees are absent this week")
+                    
+            with col2:
+                st.markdown("### ❌ Absent Employees:")
+                if absent:
+                    for e in absent:
+                        st.markdown(f"- {e['name']} ({e['email']})")
+                else:
+                    st.info("No absent employees this week")
         for a in mgr_absences:
             status = a.get("status", "pending")
             status_desc = a.get("status_description")

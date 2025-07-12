@@ -9,6 +9,10 @@ class UserCreateDTO(BaseModel):
     role: UserRole
     grade: UserGrade
 
+class UserLoginDTO(BaseModel):
+    email: EmailStr
+    password: str
+
 class UserReadDTO(BaseModel):
     user_id: UUID
     name: str
@@ -20,5 +24,7 @@ class UserReadDTO(BaseModel):
     
     model_config = ConfigDict(from_attributes=True)
 
-class UserLoginDTO(BaseModel):
-    email: EmailStr
+class UserWithTokenDTO(BaseModel):
+    user: UserReadDTO
+    access_token: str
+    token_type: str = "bearer"

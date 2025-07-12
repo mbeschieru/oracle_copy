@@ -12,6 +12,8 @@ BACKEND_URL = "http://localhost:8000"  # FastAPI must be running locally
 # ========== SESSION STATE SETUP ==========
 if "user" not in st.session_state:
     st.session_state.user = None
+if "token" not in st.session_state:
+    st.session_state.token = None
 
 # ========== LOGIN FORM ==========
 def login():
@@ -21,13 +23,16 @@ def login():
 
     with st.form("login_form"):
         email = st.text_input("Email", placeholder="Enter your work email")
+        password = st.text_input("Password", type="password", placeholder="Enter your password")
         submit = st.form_submit_button("Login")
 
-        if submit and email:
+        if submit and email and password:
             try:
-                res = requests.post(f"{BACKEND_URL}/users/login", json={"email": email})
+                res = requests.post(f"{BACKEND_URL}/users/login", json={"email": email, "password": password})
                 if res.status_code == 200:
-                    st.session_state.user = res.json()
+                    data = res.json()
+                    st.session_state.user = data["user"]
+                    st.session_state.token = data["access_token"]
                     st.success("✅ Login successful!")
                     st.rerun()
                 else:
@@ -40,18 +45,22 @@ def main_menu():
     user = st.session_state.user
     st.sidebar.title("👋 Welcome")
     st.sidebar.markdown(f"**Hello, {user['name']} ({user['role'].capitalize()})**")
-    page = st.sidebar.radio("Menu", ["Timesheets", "Absences", "Endava Employees", "Logout"])
+    page = st.sidebar.radio("Menu", ["Timesheets", "Absences", "Meetings", "Endava Employees", "Logout"])
     if page == "Timesheets":
         from app.presentation.streamlit_app.components.timesheet import dashboard
         dashboard()
     elif page == "Absences":
         from app.presentation.streamlit_app.components.absences import absences_dashboard
         absences_dashboard()
+    elif page == "Meetings":
+        from app.presentation.streamlit_app.components.meetings import meetings_dashboard
+        meetings_dashboard()
     elif page == "Endava Employees":
         from app.presentation.streamlit_app.components.employees import dashboard as employees_dashboard
         employees_dashboard()
     elif page == "Logout":
         st.session_state.user = None
+        st.session_state.token = None
         st.success("Logged out.")
         st.rerun()
 

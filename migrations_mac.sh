@@ -55,5 +55,7 @@ echo "========================================"
 echo "🌱 Step 6: Seeding database"
 echo "========================================"
 python seed_dev_data.py
+python populate_davaX.py
+python populate_meeting_and_attendance.py
 
 echo "✅ DONE! Database created, schema migrated, and data seeded."

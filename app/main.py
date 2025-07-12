@@ -4,6 +4,7 @@ from fastapi.openapi.utils import get_openapi
 from app.presentation.api.user_controller import router as user_router
 from app.presentation.api.timesheet_controller import router as timesheet_router
 from app.presentation.api.absence_controller import router as absence_router
+from app.presentation.api.meeting_controller import router as meeting_router
 from app.presentation.dependencies.header_user import get_authenticated_user_id
 
 app = FastAPI(title="Oracle Timesheet Clone")
@@ -37,3 +38,4 @@ app.openapi = custom_openapi
 app.include_router(user_router)
 app.include_router(timesheet_router)
 app.include_router(absence_router)
+app.include_router(meeting_router)

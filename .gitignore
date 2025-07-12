@@ -3,3 +3,6 @@ venv
 __pycache__
 .vscode
 alembic/versions
+frontend.log
+backend.log
+alembic.ini

@@ -1,30 +1,43 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from uuid import UUID
-from app.domain.dto.user_dto import UserLoginDTO, UserReadDTO
+from app.domain.dto.user_dto import UserLoginDTO, UserReadDTO, UserWithTokenDTO
 from app.use_case.services.user_service import UserService
-from app.infrastructure.dependencies import get_user_service  # we'll define this
-from app.domain.exceptions.factory_user import user_not_found
-from app.presentation.dependencies.header_user import get_authenticated_user_id
-
+from app.infrastructure.dependencies import get_user_service
+from app.presentation.dependencies.jwt_auth import get_current_user, get_current_user_id
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
-@router.post("/login", response_model=UserReadDTO)
+@router.post("/login", response_model=UserWithTokenDTO)
 def login(data: UserLoginDTO, service: UserService = Depends(get_user_service)):
+    """Login with email and password, return JWT token"""
     try:
-        user = service.login_by_email(data.email)
-        return UserReadDTO.from_orm(user)
+        result = service.login_by_email_and_password(data.email, data.password)
+        return result
+    except ValueError as e:
+        raise HTTPException(status_code=401, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"Login failed: {str(e)}")
+
+@router.get("/me", response_model=UserReadDTO)
+def get_current_user_info(current_user = Depends(get_current_user)):
+    """Get current user information from JWT token"""
+    return UserReadDTO(
+        user_id=UUID(current_user.user_id),
+        name=current_user.name,
+        email=current_user.email,
+        role=current_user.role,
+        grade=current_user.grade,
+        created_at=current_user.created_at,
+        project_id=UUID(current_user.project_id) if current_user.project_id else None
+    )
 
 @router.get("/{user_id}", response_model=UserReadDTO)
 def get_user(user_id: UUID, service: UserService = Depends(get_user_service)):
-
+    """Get user details by ID"""
     user = service.get_user_details(user_id)
     if not user:
-        raise HTTPException(**user_not_found(str(user_id)).__dict__)
-    return UserReadDTO.from_orm(user)
-
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
 
 @router.get("/", response_model=list[UserReadDTO])
 def get_all(
@@ -32,7 +45,8 @@ def get_all(
     limit: int = Query(10, ge=1, le=100),
     service: UserService = Depends(get_user_service)
 ):
-    return [UserReadDTO.from_orm(u) for u in service.get_all_users(offset=offset, limit=limit)]
+    """Get all users with pagination"""
+    return service.get_all_users(offset=offset, limit=limit)
 
 @router.get("/by_project/{project_id}", response_model=list[UserReadDTO])
 def get_users_by_project(
@@ -41,4 +55,5 @@ def get_users_by_project(
     limit: int = Query(10, ge=1, le=100),
     service: UserService = Depends(get_user_service)
 ):
-    return [UserReadDTO.from_orm(u) for u in service.get_users_by_project(project_id, offset=offset, limit=limit)]
+    """Get users by project with pagination"""
+    return service.get_users_by_project(project_id, offset=offset, limit=limit)
