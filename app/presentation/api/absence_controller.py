@@ -4,7 +4,7 @@ from datetime import date
 from app.domain.dto.absence_dto import AbsenceCreateDTO, AbsenceReadDTO
 from app.use_case.services.absence_service import AbsenceService
 from app.infrastructure.dependencies import get_absence_service, get_user_service
-from app.presentation.dependencies.header_user import get_authenticated_user_id
+from app.presentation.dependencies.jwt_auth import get_current_user_id
 from pydantic import BaseModel
 
 router = APIRouter(prefix="/absences", tags=["Absences"])
@@ -15,14 +15,14 @@ class AbsenceActionDTO(BaseModel):
 @router.post("/", response_model=dict)
 def create_absence(
     data: AbsenceCreateDTO,
-    user_id: UUID = Depends(get_authenticated_user_id),
+    user_id: UUID = Depends(get_current_user_id),
     service: AbsenceService = Depends(get_absence_service)
 ):
     return service.create_absence(data, user_id)
 
 @router.get("/", response_model=list[AbsenceReadDTO])
 def get_user_absences(
-    user_id: UUID = Depends(get_authenticated_user_id),
+    user_id: UUID = Depends(get_current_user_id),
     service: AbsenceService = Depends(get_absence_service)
 ):
     return service.get_user_absences(user_id)
@@ -30,7 +30,7 @@ def get_user_absences(
 @router.get("/week", response_model=AbsenceReadDTO)
 def get_absence_by_week(
     week_start: date,
-    user_id: UUID = Depends(get_authenticated_user_id),
+    user_id: UUID = Depends(get_current_user_id),
     service: AbsenceService = Depends(get_absence_service)
 ):
     return service.get_absence_by_week(user_id, week_start)
@@ -47,7 +47,7 @@ def get_project_absences_by_week(
 def approve_absence(
     absence_id: UUID,
     data: AbsenceActionDTO = Body(...),
-    user_id: UUID = Depends(get_authenticated_user_id),
+    user_id: UUID = Depends(get_current_user_id),
     service: AbsenceService = Depends(get_absence_service)
 ):
     description = data.description or "All ok"
@@ -57,7 +57,7 @@ def approve_absence(
 def decline_absence(
     absence_id: UUID,
     data: AbsenceActionDTO = Body(...),
-    user_id: UUID = Depends(get_authenticated_user_id),
+    user_id: UUID = Depends(get_current_user_id),
     service: AbsenceService = Depends(get_absence_service)
 ):
     if not data.description:

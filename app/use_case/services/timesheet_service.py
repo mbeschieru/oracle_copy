@@ -40,7 +40,27 @@ class TimesheetService:
         if not timesheets:
             raise user_timesheet_not_found(str(target_user_id))
 
-        return [TimesheetReadDTO.from_orm(ts) for ts in timesheets]
+        # Convert to DTOs with eagerly loaded entries
+        result = []
+        for ts in timesheets:
+            entries = [
+                TimeEntryDTO(
+                    day=e.day,
+                    hours=e.hours,
+                    project_id=e.project_id,
+                    description=e.description
+                ) for e in ts.entries
+            ]
+            result.append(TimesheetReadDTO(
+                timesheet_id=ts.timesheet_id,
+                user_id=ts.user_id,
+                week_start=ts.week_start,
+                approved=ts.approved,
+                status=getattr(ts, 'status', 'pending'),
+                status_description=getattr(ts, 'status_description', None),
+                entries=entries
+            ))
+        return result
 
         
     def get_timesheet_by_week(self, requester_id: UUID, target_user_id: UUID, week_start: date):
@@ -50,14 +70,14 @@ class TimesheetService:
         if not ts:
             raise user_timesheet_not_found(str(target_user_id), str(week_start))
 
-        # Map ORM entries to DTOs
+        # Map ORM entries to DTOs - entries are now eagerly loaded
         entries = [
             TimeEntryDTO(
                 day=e.day,
                 hours=e.hours,
                 project_id=e.project_id,
                 description=e.description
-            ) for e in getattr(ts, 'entries', [])
+            ) for e in ts.entries
         ]
         return TimesheetReadDTO(
             timesheet_id=ts.timesheet_id,

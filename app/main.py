@@ -5,7 +5,7 @@ from app.presentation.api.user_controller import router as user_router
 from app.presentation.api.timesheet_controller import router as timesheet_router
 from app.presentation.api.absence_controller import router as absence_router
 from app.presentation.api.meeting_controller import router as meeting_router
-from app.presentation.dependencies.header_user import get_authenticated_user_id
+from app.presentation.dependencies.jwt_auth import get_current_user_id
 
 app = FastAPI(title="Oracle Timesheet Clone")
 
@@ -23,7 +23,7 @@ def custom_openapi():
         "HTTPBearer": {
             "type": "http",
             "scheme": "bearer",
-            "bearerFormat": "UUID (user id)"
+            "bearerFormat": "JWT"
         }
     }
     for path in openapi_schema["paths"].values():

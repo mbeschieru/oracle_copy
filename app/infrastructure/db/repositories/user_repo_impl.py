@@ -8,20 +8,21 @@ from app.domain.enums import UserRole, UserGrade
 
 class UserRepository(UserRepositoryInterface):
 
-    def __init__(self):
-        self.db = SessionLocal()
-
     def get_by_email(self, email: str):
-        return self.db.query(UserModel).filter(UserModel.email == email).first()
+        with SessionLocal() as session:
+            return session.query(UserModel).filter(UserModel.email == email).first()
 
     def get_by_id(self, user_id: UUID):
-        return self.db.query(UserModel).filter(UserModel.user_id == user_id).first()
+        with SessionLocal() as session:
+            return session.query(UserModel).filter(UserModel.user_id == str(user_id)).first()
 
     def get_all_users(self, offset=0, limit=10):
-        return self.db.query(UserModel).order_by(UserModel.created_at).offset(offset).limit(limit).all()
+        with SessionLocal() as session:
+            return session.query(UserModel).order_by(UserModel.created_at).offset(offset).limit(limit).all()
 
     def get_users_by_project(self, project_id, offset=0, limit=10):
-        return self.db.query(UserModel).filter(UserModel.project_id == project_id).order_by(UserModel.created_at).offset(offset).limit(limit).all()
+        with SessionLocal() as session:
+            return session.query(UserModel).filter(UserModel.project_id == project_id).order_by(UserModel.created_at).offset(offset).limit(limit).all()
 
     def authenticate_user(self, email: str, password: str):
         """Authenticate user with email and password"""
@@ -33,7 +34,6 @@ class UserRepository(UserRepositoryInterface):
             return user
         
         return None
-
 
     def create_jwt_token(self, user):
         """Create JWT token for user"""

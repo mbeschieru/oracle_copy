@@ -41,7 +41,16 @@ def get_entries_for_timesheet(
     timesheet_id: UUID,
     service : TimesheetService = Depends(get_timesheet_service)
 ):
-    return [TimeEntryDTO.from_orm(e) for e in service.get_timesheet_by_id(timesheet_id)]
+    timesheet = service.get_timesheet_by_id(timesheet_id)
+    # Convert entries to DTOs - entries are now eagerly loaded
+    return [
+        TimeEntryDTO(
+            day=e.day,
+            hours=e.hours,
+            project_id=e.project_id,
+            description=e.description
+        ) for e in timesheet.entries
+    ]
 
 
 class TimesheetActionDTO(BaseModel):
