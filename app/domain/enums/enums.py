@@ -8,3 +8,7 @@ class UserGrade (str,Enum):
     JUNIOR = "junior"
     MID = "mid"
     SENIOR = "senior"
+
+class AttendanceResponse(str, Enum):
+    ACCEPTED = "accepted"
+    DECLINED = "declined"

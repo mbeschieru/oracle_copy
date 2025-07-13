@@ -2,6 +2,8 @@ from sqlalchemy import Column, String, Enum, DateTime, ForeignKey
 from sqlalchemy.types import CHAR
 from datetime import datetime
 import uuid
+from sqlalchemy.orm import relationship
+from app.infrastructure.db.models.meeting_attendance_models import MeetingAttendanceModel
 from app.infrastructure.config.db_config import Base
 from app.domain.enums import UserRole, UserGrade
 
@@ -16,3 +18,10 @@ class UserModel(Base):
     grade = Column(Enum(UserGrade), nullable=False)
     created_at = Column(DateTime, default=datetime.now())
     project_id = Column(CHAR(36), ForeignKey("projects.project_id"), nullable=True)
+
+    meeting_attendances = relationship(
+        "MeetingAttendanceModel",
+        back_populates="user",
+        cascade="all, delete-orphan"
+    )
+    

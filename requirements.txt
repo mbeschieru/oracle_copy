@@ -5,6 +5,7 @@ sqlalchemy
 alembic
 psycopg2-binary
 streamlit
+streamlit-calendar
 python-dotenv
 streamlit
 alembic
