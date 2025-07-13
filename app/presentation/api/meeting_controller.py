@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from uuid import UUID
 from typing import List
-from app.domain.dto.meeting_dto import MeetingReadDTO, PaginatedAttendanceDTO
+from app.domain.dto.meeting_dto import MeetingReadDTO, PaginatedAttendanceDTO, MeetingCreateDTO
 from app.use_case.services.meeting_service import MeetingService
 from app.infrastructure.dependencies import get_meeting_service
 from app.presentation.dependencies.jwt_auth import get_current_user_id
@@ -36,6 +36,18 @@ async def get_meeting_by_id(
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching meeting: {str(e)}")
+
+@router.post("/", response_model=dict)
+async def create_meeting(
+    data: MeetingCreateDTO,
+    user_id: UUID = Depends(get_current_user_id),
+    meeting_service: MeetingService = Depends(get_meeting_service)
+):
+    """Create a new meeting"""
+    try:
+        return meeting_service.create_meeting(data, user_id)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error creating meeting: {str(e)}")
 
 @router.get("/{meeting_id}/attendance", response_model=PaginatedAttendanceDTO)
 async def get_meeting_attendance(

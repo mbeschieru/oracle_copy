@@ -5,8 +5,9 @@ from app.domain.repositories.attendance_repository import AttendanceRepositoryIn
 from app.domain.entities.calendar import Meeting
 from app.domain.entities.user import User
 from app.use_case.validators.role_validator import require_manager
-from app.domain.dto.meeting_dto import MeetingReadDTO, AttendanceReadDTO, PaginatedAttendanceDTO
+from app.domain.dto.meeting_dto import MeetingReadDTO, AttendanceReadDTO, PaginatedAttendanceDTO, MeetingCreateDTO
 import math
+import uuid
 
 class MeetingService:
 
@@ -87,8 +88,19 @@ class MeetingService:
         """Get meetings for a specific user"""
         return self.meeting_repo.get_meetings_for_user(user_id)
 
-    def create_meeting(self, meeting: Meeting, created_by: User):
+    def create_meeting(self, data: MeetingCreateDTO, user_id: UUID):
         """Create a new meeting"""
-        require_manager(created_by)
+        from app.domain.repositories.user_repository import UserRepositoryInterface
+        from app.infrastructure.db.repositories.user_repo_impl import UserRepository
+        user_repo: UserRepositoryInterface = UserRepository()
+        user = user_repo.get_by_id(user_id)
+        print(f"[DEBUG] Creating meeting as user: {user.email}, role: {user.role}")
+        require_manager(user)
+        meeting = Meeting(
+            meeting_id=uuid.uuid4(),  # generate new UUID
+            title=data.title,
+            datetime=data.datetime,
+            duration_minutes=data.duration_minutes
+        )
         self.meeting_repo.create_meeting(meeting)
         return {"status": "created"}

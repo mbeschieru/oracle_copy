@@ -72,6 +72,8 @@ def meetings_dashboard():
                 
                 st.markdown("---")
                 
+                # Remove MeetingAttendance responses display here. Only show meeting details and attendance/time-tracking data.
+                
                 # Pagination controls
                 col1, col2, col3 = st.columns([1, 2, 1])
                 with col1:

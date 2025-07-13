@@ -14,7 +14,18 @@ class UserRepository(UserRepositoryInterface):
 
     def get_by_id(self, user_id: UUID):
         with SessionLocal() as session:
-            return session.query(UserModel).filter(UserModel.user_id == str(user_id)).first()
+            user_model = session.query(UserModel).filter(UserModel.user_id == str(user_id)).first()
+            if not user_model:
+                return None
+            return User(
+                user_id=UUID(user_model.user_id),
+                name=user_model.name,
+                email=user_model.email,
+                role=user_model.role,
+                grade=user_model.grade,
+                created_at=user_model.created_at,
+                project_id=UUID(user_model.project_id) if user_model.project_id else None
+            )
 
     def get_all_users(self, offset=0, limit=10):
         with SessionLocal() as session:

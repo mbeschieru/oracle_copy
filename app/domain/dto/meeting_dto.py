@@ -40,3 +40,8 @@ class PaginatedAttendanceDTO(BaseModel):
     total_pages: int
     has_next: bool
     has_previous: bool 
+
+class MeetingCreateDTO(BaseModel):
+    title: str
+    datetime: datetime
+    duration_minutes: int 

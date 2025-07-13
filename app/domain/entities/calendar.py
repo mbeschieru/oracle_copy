@@ -2,6 +2,9 @@ from uuid import UUID
 from datetime import datetime
 
 class Meeting:
+    """
+    Represents a meeting event. Attendance responses (accept/decline) are handled via MeetingAttendance, not this entity.
+    """
     def __init__(self, meeting_id: UUID, title: str, datetime: datetime, duration_minutes: int):
         self.meeting_id = meeting_id
         self.title = title

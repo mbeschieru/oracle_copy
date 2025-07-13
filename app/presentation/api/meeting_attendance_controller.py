@@ -3,7 +3,7 @@ from uuid import UUID
 from typing import List
 
 from app.domain.dto.meeting_attendance_dto import (
-    MeetingAttendanceCreateDTO, MeetingAttendanceReadDTO
+    MeetingAttendanceCreateDTO, MeetingAttendanceReadDTO, MeetingAttendanceWithUserDTO
 )
 from app.domain.enums.enums import AttendanceResponse
 from app.use_case.services.meeting_attendance_service import MeetingAttendanceService
@@ -31,7 +31,7 @@ def respond_to_attendance(
         raise HTTPException(status_code=404, detail="Attendance not found")
     return updated
 
-@router.get("/meeting/{meeting_id}", response_model=List[MeetingAttendanceReadDTO])
+@router.get("/meeting/{meeting_id}", response_model=List[MeetingAttendanceWithUserDTO])
 def list_attendance(
     meeting_id: UUID,
     svc: MeetingAttendanceService = Depends(get_meeting_attendance_service),

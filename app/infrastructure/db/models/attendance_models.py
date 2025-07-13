@@ -1,6 +1,5 @@
 from sqlalchemy import Column, Time, Date, ForeignKey
 from sqlalchemy.types import CHAR, Integer
-from sqlalchemy.orm import relationship
 from app.infrastructure.config.db_config import Base
 import uuid
 
@@ -14,6 +13,3 @@ class AttendanceModel(Base):
     check_in = Column(Time, nullable=False)
     check_out = Column(Time, nullable=False)
     time_spent = Column(Integer, nullable=False)
-    
-    # Relationship to UserModel
-    user = relationship("UserModel", backref="attendances")  

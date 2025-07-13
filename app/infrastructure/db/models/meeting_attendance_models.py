@@ -1,5 +1,4 @@
 from sqlalchemy import Column, DateTime, Enum, ForeignKey
-from sqlalchemy.orm import relationship
 from sqlalchemy.types import CHAR
 from datetime import datetime, timezone
 import uuid
@@ -18,6 +17,3 @@ class MeetingAttendanceModel(Base):
     status = Column(Enum(AttendanceResponse), nullable=False)
     responded_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
-    # back‑refs
-    meeting = relationship("MeetingModel", back_populates="attendances")
-    user    = relationship("UserModel", back_populates="meeting_attendances")

@@ -12,3 +12,4 @@ class UserGrade (str,Enum):
 class AttendanceResponse(str, Enum):
     ACCEPTED = "accepted"
     DECLINED = "declined"
+    PENDING = "pending"

@@ -9,6 +9,9 @@ from app.infrastructure.db.models.user_models import UserModel
 from sqlalchemy.orm import joinedload
 
 class AttendanceRepository(AttendanceRepositoryInterface):
+    """
+    Handles time tracking attendance, not meeting accept/decline responses. MeetingAttendanceRepository handles meeting responses.
+    """
 
     def __init__(self):
         pass  # Don't create session in constructor
@@ -77,9 +80,7 @@ class AttendanceRepository(AttendanceRepositoryInterface):
             
             # Get paginated attendance with user details
             # SQL Server requires ORDER BY when using OFFSET and LIMIT
-            attendances = db.query(AttendanceModel).options(
-                joinedload(AttendanceModel.user)
-            ).filter(
+            attendances = db.query(AttendanceModel).filter(
                 AttendanceModel.meeting_id == str(meeting_id)
             ).order_by(AttendanceModel.attendance_id).offset(offset).limit(page_size).all()
             
