@@ -45,7 +45,7 @@ def main_menu():
     user = st.session_state.user
     st.sidebar.title("👋 Welcome")
     st.sidebar.markdown(f"**Hello, {user['name']} ({user['role'].capitalize()})**")
-    page = st.sidebar.radio("Menu", ["Timesheets", "Absences", "Meetings", "Endava Employees", "Logout"])
+    page = st.sidebar.radio("Menu", ["Timesheets", "Absences", "Meetings", "Calendar", "Endava Employees", "Logout"])
     if page == "Timesheets":
         from app.presentation.streamlit_app.components.timesheet import dashboard
         dashboard()
@@ -58,6 +58,9 @@ def main_menu():
     elif page == "Endava Employees":
         from app.presentation.streamlit_app.components.employees import dashboard as employees_dashboard
         employees_dashboard()
+    elif page == "Calendar":
+        from app.presentation.streamlit_app.components.calendar import calendar_page
+        calendar_page()
     elif page == "Logout":
         st.session_state.user = None
         st.session_state.token = None

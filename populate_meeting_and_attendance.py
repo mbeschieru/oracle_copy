@@ -5,10 +5,14 @@ from datetime import datetime
 from io import StringIO
 from sqlalchemy.orm.exc import NoResultFound
 
+from app.domain.enums.enums import AttendanceResponse
 from app.infrastructure.config.db_config import SessionLocal
 from app.infrastructure.db.models.meeting_models import MeetingModel
 from app.infrastructure.db.models.attendance_models import AttendanceModel
 from app.infrastructure.db.models.user_models import UserModel
+from app.infrastructure.db.models.meeting_attendance_models import (
+    MeetingAttendanceModel,
+)
 
 CSV_PATH = "Dava.csv"
 
@@ -129,8 +133,17 @@ def populate_meeting_and_attendance():
             check_out=parse_time_string(check_out_str),
             time_spent=parse_duration_to_minutes(duration_str)
         )
-
         db.add(attendance)
+        """
+        attendance = MeetingAttendanceModel(
+        meeting_attendance_id=str(uuid.uuid4()),
+        meeting_id=meeting_id,
+        user_id=user.user_id,
+        status=AttendanceResponse.ACC   # or DECLINED / PENDING
+        )
+        db.add(attendance)
+        """
+        
         inserted += 1
 
     db.commit()

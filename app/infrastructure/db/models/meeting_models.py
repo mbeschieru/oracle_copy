@@ -1,6 +1,8 @@
 from sqlalchemy import Column, String, DateTime, Integer
 from sqlalchemy.types import CHAR
+from sqlalchemy.orm import relationship
 from app.infrastructure.config.db_config import Base
+from app.infrastructure.db.models.meeting_attendance_models import MeetingAttendanceModel
 import uuid
 from datetime import datetime
 
@@ -11,3 +13,9 @@ class MeetingModel(Base):
     title = Column(String(255), nullable=False)
     datetime = Column(DateTime, nullable=False)
     duration_minutes = Column(Integer, nullable=False)
+
+    attendances = relationship(
+        "MeetingAttendanceModel",
+        back_populates="meeting",
+        cascade="all, delete-orphan"
+    )
