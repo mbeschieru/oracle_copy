@@ -6,7 +6,7 @@ from app.infrastructure.db.models.user_models import UserModel
 from app.infrastructure.db.models.project_models import ProjectModel
 from app.infrastructure.config.jwt_config import get_password_hash
 
-CSV_PATH = "Dava.csv"
+CSV_PATH = "/home/deroca/oracle_copy/davaX_data/ETL24.csv"
 DEFAULT_ROLE = "employee"
 DEFAULT_GRADE = "junior"
 DEFAULT_PASSWORD = "Strong123@"

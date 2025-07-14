@@ -1,3 +1,4 @@
+import os
 import csv
 import uuid
 import re
@@ -14,7 +15,12 @@ from app.infrastructure.db.models.meeting_attendance_models import (
     MeetingAttendanceModel,
 )
 
-CSV_PATH = "Dava.csv"
+#folder davaX_data
+#-ETL24.csv
+#-ETL25.csv
+#-ETL26.csv
+
+CSV_FOLDER = "davaX_data"
 
 def parse_duration_to_minutes(duration_str: str) -> int:
     hours = minutes = seconds = 0
@@ -65,93 +71,104 @@ def extract_attendance_data(lines: list[str]) -> list[dict]:
 def populate_meeting_and_attendance():
     db = SessionLocal()
 
-    with open(CSV_PATH, encoding="ISO-8859-1") as f:
-        lines = f.readlines()
+    try:
+        for filename in os.listdir(CSV_FOLDER):
+            if not filename.endswith(".csv"):
+                continue
 
-    title, start_datetime, duration_minutes = extract_meeting_metadata(lines)
+            file_path = os.path.join(CSV_FOLDER, filename)
+            print(f"\n=== Procesare fișier: {filename} ===")
 
-    existing = db.query(MeetingModel).filter(
-        MeetingModel.title == title,
-        MeetingModel.datetime == start_datetime
-    ).first()
+            with open(file_path, encoding="ISO-8859-1") as f:
+                lines = f.readlines()
 
-    if existing:
-        print(f"Meeting-ul '{title}' din {start_datetime} există deja în DB (ID: {existing.meeting_id}).")
-        return
+            title, start_datetime, duration_minutes = extract_meeting_metadata(lines)
 
-    meeting_id = str(uuid.uuid4())
-    meeting = MeetingModel(
-        meeting_id=meeting_id,
-        title=title,
-        datetime=start_datetime,
-        duration_minutes=duration_minutes
-    )
-    db.add(meeting)
-    db.flush()  # asigurăm salvarea meeting_id
+            existing = db.query(MeetingModel).filter(
+                MeetingModel.title == title,
+                MeetingModel.datetime == start_datetime
+            ).first()
 
-    print(f"Meeting inserat: {title} la {start_datetime}, {duration_minutes} minute.")
+            if existing:
+                print(f"Meeting-ul '{title}' din {start_datetime} există deja în DB (ID: {existing.meeting_id}).")
+                continue
 
-    participants = extract_attendance_data(lines)
-    inserted, skipped, duplicates_in_csv = 0, 0, 0
-    seen_emails = set()
+            meeting_id = str(uuid.uuid4())
+            meeting = MeetingModel(
+                meeting_id=meeting_id,
+                title=title,
+                datetime=start_datetime,
+                duration_minutes=duration_minutes
+            )
+            db.add(meeting)
+            db.flush()
 
-    for row in participants:
-        email = row["Email"].strip().lower()
-        if email == "email":
-            continue
-        if email in seen_emails:
-            duplicates_in_csv += 1
-            continue
-        seen_emails.add(email)
+            print(f"Meeting inserat: {title} la {start_datetime}, {duration_minutes} minute.")
 
-        check_in_str = row["First Join"]
-        check_out_str = row["Last Leave"]
-        duration_str = row["In-Meeting Duration"]
+            participants = extract_attendance_data(lines)
+            inserted, skipped, duplicates_in_csv = 0, 0, 0
+            seen_emails = set()
 
-        try:
-            user = db.query(UserModel).filter(UserModel.email == email).one()
-        except NoResultFound:
-            skipped += 1
-            continue
+            for row in participants:
+                email = row["Email"].strip().lower()
+                if email == "email":
+                    continue
+                if email in seen_emails:
+                    duplicates_in_csv += 1
+                    continue
+                seen_emails.add(email)
 
-        # Verificare în baza de date dacă deja există o prezență
-        already_exists = db.query(AttendanceModel).filter_by(
-            meeting_id=meeting_id,
-            user_id=user.user_id
-        ).first()
+                check_in_str = row["First Join"]
+                check_out_str = row["Last Leave"]
+                duration_str = row["In-Meeting Duration"]
 
-        if already_exists:
-            skipped += 1
-            continue
+                try:
+                    user = db.query(UserModel).filter(UserModel.email == email).one()
+                except NoResultFound:
+                    skipped += 1
+                    continue
 
-        attendance = AttendanceModel(
-            attendance_id=str(uuid.uuid4()),
-            meeting_id=meeting_id,
-            user_id=user.user_id,
-            day=parse_day_string(check_in_str),
-            check_in=parse_time_string(check_in_str),
-            check_out=parse_time_string(check_out_str),
-            time_spent=parse_duration_to_minutes(duration_str)
-        )
-        db.add(attendance)
-        """
-        attendance = MeetingAttendanceModel(
-        meeting_attendance_id=str(uuid.uuid4()),
-        meeting_id=meeting_id,
-        user_id=user.user_id,
-        status=AttendanceResponse.ACC   # or DECLINED / PENDING
-        )
-        db.add(attendance)
-        """
-        
-        inserted += 1
+                already_exists = db.query(AttendanceModel).filter_by(
+                    meeting_id=meeting_id,
+                    user_id=user.user_id
+                ).first()
 
-    db.commit()
-    db.close()
+                if already_exists:
+                    skipped += 1
+                    continue
 
-    print(f"Prezențe adăugate: {inserted}")
-    print(f"Participanți săriți (email inexistent sau deja în DB): {skipped}")
-    print(f"Participanți ignorați (duplicat în CSV): {duplicates_in_csv}")
+                attendance = AttendanceModel(
+                    attendance_id=str(uuid.uuid4()),
+                    meeting_id=meeting_id,
+                    user_id=user.user_id,
+                    day=parse_day_string(check_in_str),
+                    check_in=parse_time_string(check_in_str),
+                    check_out=parse_time_string(check_out_str),
+                    time_spent=parse_duration_to_minutes(duration_str)
+                )
+                db.add(attendance)
+
+                """
+                attendance = MeetingAttendanceModel(
+                    meeting_attendance_id=str(uuid.uuid4()),
+                    meeting_id=meeting_id,
+                    user_id=user.user_id,
+                    status=AttendanceResponse.ACC   # or DECLINED / PENDING
+                )
+                db.add(attendance)
+                """
+
+                inserted += 1
+
+            db.commit()
+
+            print(f"Prezențe adăugate: {inserted}")
+            print(f"Participanți săriți (email inexistent sau deja în DB): {skipped}")
+            print(f"Participanți ignorați (duplicat în CSV): {duplicates_in_csv}")
+
+    finally:
+        db.close()
+
 
 if __name__ == "__main__":
     populate_meeting_and_attendance()
