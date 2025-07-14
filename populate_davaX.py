@@ -5,8 +5,10 @@ from app.infrastructure.config.db_config import SessionLocal
 from app.infrastructure.db.models.user_models import UserModel
 from app.infrastructure.db.models.project_models import ProjectModel
 from app.infrastructure.config.jwt_config import get_password_hash
+import os
 
-CSV_PATH = "/home/deroca/oracle_copy/davaX_data/ETL24.csv"
+# Use robust path for CSV
+CSV_PATH = os.path.join(os.path.dirname(__file__), "davaX_data", "ETL24.csv")
 DEFAULT_ROLE = "employee"
 DEFAULT_GRADE = "junior"
 DEFAULT_PASSWORD = "Strong123@"
@@ -31,6 +33,25 @@ def get_project(db):
 
 def populate_users():
     db = SessionLocal()
+    # Ensure at least one manager exists
+    manager_email = "manager@endava.com"
+    manager = db.query(UserModel).filter(UserModel.email == manager_email).first()
+    if not manager:
+        project_id = get_project(db)
+        manager = UserModel(
+            user_id=str(uuid.uuid4()),
+            name="Default Manager",
+            email=manager_email,
+            password_hash=get_password_hash(DEFAULT_PASSWORD),
+            role="manager",
+            grade="senior",
+            created_at=datetime.now(timezone.utc),
+            project_id=project_id
+        )
+        db.add(manager)
+        db.commit()
+        print(f"Manager user created: {manager_email}")
+
     participants = load_participants(CSV_PATH)
     inserted = 0
     skipped = 0

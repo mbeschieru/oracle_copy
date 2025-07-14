@@ -20,7 +20,11 @@ from app.infrastructure.db.models.meeting_attendance_models import (
 #-ETL25.csv
 #-ETL26.csv
 
-CSV_FOLDER = "davaX_data"
+# Use robust path for CSV_FOLDER
+def get_davax_folder():
+    return os.path.join(os.path.dirname(__file__), "davaX_data")
+
+CSV_FOLDER = get_davax_folder()
 
 def parse_duration_to_minutes(duration_str: str) -> int:
     hours = minutes = seconds = 0
@@ -70,7 +74,13 @@ def extract_attendance_data(lines: list[str]) -> list[dict]:
 
 def populate_meeting_and_attendance():
     db = SessionLocal()
-
+    # Find a manager user
+    manager = db.query(UserModel).filter(UserModel.role == "manager").first()
+    if not manager:
+        print("No manager user found. Cannot create meetings.")
+        db.close()
+        return
+    print(f"Meetings will be created by manager: {manager.email}")
     try:
         for filename in os.listdir(CSV_FOLDER):
             if not filename.endswith(".csv"):

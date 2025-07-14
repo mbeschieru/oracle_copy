@@ -8,9 +8,10 @@ from typing import List
 # CONFIG
 # ------------------------------------------------------------------
 BACKEND_URL = "http://localhost:8000"        # adjust if your FastAPI runs elsewhere
-TOKEN       = st.session_state.get("token")  # set at login
 
-HEADERS = {"Authorization": f"Bearer {TOKEN}"} if TOKEN else {}
+def get_auth_header():
+    token = st.session_state.get("token")
+    return {"Authorization": f"Bearer {token}"} if token else {}
 
 WEEK_START = "isoWeek"   # Monday‑first, to match Teams
 COLOR_ACCEPTED = "#4CAF50"  # green
@@ -23,12 +24,12 @@ DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sun
 # Helpers
 # ------------------------------------------------------------------
 def fetch_meetings():
-    resp = requests.get(f"{BACKEND_URL}/meetings", headers=HEADERS)
+    resp = requests.get(f"{BACKEND_URL}/meetings", headers=get_auth_header())
     resp.raise_for_status()
     return resp.json()                     # List[MeetingReadDTO]
 
 def fetch_attendance(meeting_id: UUID):
-    resp = requests.get(f"{BACKEND_URL}/attendance/meeting/{meeting_id}", headers=HEADERS)
+    resp = requests.get(f"{BACKEND_URL}/attendance/meeting/{meeting_id}", headers=get_auth_header())
     resp.raise_for_status()
     return resp.json()                     # List[MeetingAttendanceReadDTO]
 
@@ -44,12 +45,12 @@ def respond(meeting_id: UUID, status: str):
     mine = my_response(meeting_id)
     if mine is None:
         payload = {"meeting_id": str(meeting_id), "status": status}
-        requests.post(f"{BACKEND_URL}/attendance", headers=HEADERS, json=payload).raise_for_status()
+        requests.post(f"{BACKEND_URL}/attendance", headers=get_auth_header(), json=payload).raise_for_status()
     else:
         att_id = next(a["meeting_attendance_id"] for a in fetch_attendance(meeting_id)
                       if a["user_id"] == st.session_state.user["user_id"])
         params = {"status": status}
-        requests.patch(f"{BACKEND_URL}/attendance/{att_id}", headers=HEADERS, params=params).raise_for_status()
+        requests.patch(f"{BACKEND_URL}/attendance/{att_id}", headers=get_auth_header(), params=params).raise_for_status()
 
 # ------------------------------------------------------------------
 # UI
@@ -84,7 +85,7 @@ def calendar_dashboard():
                     "datetime": dt.isoformat(),
                     "duration_minutes": duration
                 }
-                resp = requests.post(f"{BACKEND_URL}/meetings/", headers=HEADERS, json=payload)
+                resp = requests.post(f"{BACKEND_URL}/meetings/", headers=get_auth_header(), json=payload)
                 if resp.status_code == 200 or resp.status_code == 201:
                     st.success("Meeting created! Please refresh the calendar.")
                     st.session_state["show_create_meeting_modal"] = False
