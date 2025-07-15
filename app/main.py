@@ -1,14 +1,18 @@
-from fastapi import FastAPI,Depends
-from fastapi.security import HTTPBearer
+from fastapi import FastAPI
 from fastapi.openapi.utils import get_openapi
-from app.presentation.api.user_controller import router as user_router
-from app.presentation.api.timesheet_controller import router as timesheet_router
+
 from app.presentation.api.absence_controller import router as absence_router
+from app.presentation.api.meeting_attendance_controller import (
+    router as meeting_attendance_router,
+)
 from app.presentation.api.meeting_controller import router as meeting_router
-from app.presentation.api.meeting_attendance_controller import router as meeting_attendance_router
-from app.presentation.dependencies.jwt_auth import get_current_user_id
+from app.presentation.api.timesheet_controller import (
+    router as timesheet_router,
+)
+from app.presentation.api.user_controller import router as user_router
 
 app = FastAPI(title="Oracle Timesheet Clone")
+
 
 # Add Bearer auth to OpenAPI schema
 def custom_openapi():
@@ -24,7 +28,7 @@ def custom_openapi():
         "HTTPBearer": {
             "type": "http",
             "scheme": "bearer",
-            "bearerFormat": "JWT"
+            "bearerFormat": "JWT",
         }
     }
     for path in openapi_schema["paths"].values():
@@ -32,6 +36,7 @@ def custom_openapi():
             op["security"] = [{"HTTPBearer": []}]
     app.openapi_schema = openapi_schema
     return app.openapi_schema
+
 
 app.openapi = custom_openapi
 

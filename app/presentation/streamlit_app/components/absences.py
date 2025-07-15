@@ -182,7 +182,7 @@ def absences_dashboard():
                 col1, col2 = st.columns(2)
                 with col1:
                     if st.button(
-                        f"✅ Approve",
+                        "✅ Approve",
                         key=f"approve_{a['absence_id']}"
                     ):
                         approve_url = (
@@ -198,34 +198,45 @@ def absences_dashboard():
                             st.rerun()
                         else:
                             st.error(
-                                f"❌ {resp.json().get('detail', 'Failed to approve absence')}"
+                                f"❌ {resp.json().get('detail',
+                                                     'Failed to approve '
+                                                     'absence')}"
                             )
                 with col2:
                     if st.button(
-                        f"❌ Decline",
+                        "❌ Decline",
                         key=f"decline_{a['absence_id']}"
                     ):
-                        st.session_state[f"show_decline_{a['absence_id']}"] = True
+                        st.session_state[
+                            f"show_decline_{a['absence_id']}"
+                        ] = True
                     if st.session_state.get(
                         f"show_decline_{a['absence_id']}", False
                     ):
                         decline_reason = st.text_area(
-                            f"Decline reason for {user_info['name'] if user_info else a['user_id']}",
+                            f"Decline reason for {
+                                user_info['name'] if user_info
+                                else a['user_id']
+                            }",
                             key=f"decline_reason_{a['absence_id']}"
                         )
                         submit_col, cancel_col = st.columns(2)
                         with submit_col:
                             if st.button(
-                                f"Submit Decline",
+                                "Submit Decline",
                                 key=f"submit_decline_{a['absence_id']}",
                             ):
                                 if not decline_reason.strip():
                                     st.warning(
-                                        "Please provide a reason for declining."
+                                        "Please provide a reason"
+                                        +
+                                        " for declining"
                                     )
                                 else:
                                     decline_url = (
-                                        f"{BACKEND_URL}/absences/decline/{a['absence_id']}"
+                                        f"{BACKEND_URL}/absences/decline/{
+                                            a['absence_id']
+                                        }"
                                     )
                                     resp = requests.post(
                                         decline_url,
@@ -240,11 +251,14 @@ def absences_dashboard():
                                         st.rerun()
                                     else:
                                         st.error(
-                                            f"❌ {resp.json().get('detail', 'Failed to decline absence')}"
+                                            f"❌ {resp.json().get(
+                                                'detail',
+                                                'Failed to decline absence'
+                                            )}"
                                         )
                         with cancel_col:
                             if st.button(
-                                f"Cancel",
+                                "Cancel",
                                 key=f"cancel_decline_{a['absence_id']}",
                             ):
                                 st.session_state[

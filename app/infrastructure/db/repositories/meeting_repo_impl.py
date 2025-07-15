@@ -1,9 +1,13 @@
-from uuid import UUID
 from typing import List, Optional
-from app.domain.repositories.meeting_repository import MeetingRepositoryInterface
+from uuid import UUID
+
 from app.domain.entities.calendar import Meeting
+from app.domain.repositories.meeting_repository import (
+    MeetingRepositoryInterface,
+)
 from app.infrastructure.config.db_config import SessionLocal
 from app.infrastructure.db.models.meeting_models import MeetingModel
+
 
 class MeetingRepository(MeetingRepositoryInterface):
 
@@ -18,13 +22,17 @@ class MeetingRepository(MeetingRepositoryInterface):
         """Get all meetings"""
         db = self._get_session()
         try:
-            meetings = db.query(MeetingModel).order_by(MeetingModel.datetime.desc()).all()
+            meetings = (
+                db.query(MeetingModel)
+                .order_by(MeetingModel.datetime.desc())
+                .all()
+            )
             return [
                 Meeting(
                     meeting_id=UUID(meeting.meeting_id),
                     title=meeting.title,
                     datetime=meeting.datetime,
-                    duration_minutes=meeting.duration_minutes
+                    duration_minutes=meeting.duration_minutes,
                 )
                 for meeting in meetings
             ]
@@ -35,15 +43,19 @@ class MeetingRepository(MeetingRepositoryInterface):
         """Get meeting by ID"""
         db = self._get_session()
         try:
-            meeting = db.query(MeetingModel).filter(MeetingModel.meeting_id == str(meeting_id)).first()
+            meeting = (
+                db.query(MeetingModel)
+                .filter(MeetingModel.meeting_id == str(meeting_id))
+                .first()
+            )
             if not meeting:
                 return None
-            
+
             return Meeting(
                 meeting_id=UUID(meeting.meeting_id),
                 title=meeting.title,
                 datetime=meeting.datetime,
-                duration_minutes=meeting.duration_minutes
+                duration_minutes=meeting.duration_minutes,
             )
         finally:
             db.close()
@@ -62,9 +74,9 @@ class MeetingRepository(MeetingRepositoryInterface):
                 meeting_id=str(meeting.meeting_id),
                 title=meeting.title,
                 datetime=meeting.datetime,
-                duration_minutes=meeting.duration_minutes
+                duration_minutes=meeting.duration_minutes,
             )
             db.add(meeting_model)
             db.commit()
         finally:
-            db.close() 
+            db.close()

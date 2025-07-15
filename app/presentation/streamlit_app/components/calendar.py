@@ -159,8 +159,10 @@ def calendar_dashboard():
             st.rerun()
     with col_title:
         st.markdown(
-            f"<h4 style='text-align:center; margin-bottom:0;'>{week_start_date:%B %d, %Y} – {week_end_date:%B %d}</h4>",
-            unsafe_allow_html=True,
+            f"<h4 style='text-align:center; margin-bottom:0;'>"
+            f"{week_start_date:%B %d, %Y} – {week_end_date:%B %d}"
+            f"</h4>",
+            unsafe_allow_html=True
         )
     with col_next:
         if st.button("→", key="next_week"):
@@ -211,11 +213,15 @@ def calendar_dashboard():
                         else COLOR_DECLINED
                     )
                 )
-                btn_label = f"{m['title']} ({start.strftime('%H:%M')} - {end.strftime('%H:%M')})"
+                btn_label = (
+                    f"{m['title']} ({start.strftime('%H:%M')} "
+                    f"- {end.strftime('%H:%M')})"
+                )
                 if st.button(btn_label, key=f"meeting_{m['meeting_id']}"):
                     st.session_state["selected_meeting"] = m["meeting_id"]
                 st.markdown(
-                    f"<div style='height:6px;background:{color};border-radius:4px;margin-bottom:8px'></div>",
+                    f"<div style='height:6px;background:{color};"
+                    f"border-radius:4px;margin-bottom:8px'></div>",
                     unsafe_allow_html=True,
                 )
 
@@ -275,7 +281,10 @@ def calendar_dashboard():
                     name = resp.get("user_name") or resp.get("user_id")
                     email = resp.get("user_email", "")
                     st.markdown(
-                        f"- <span style='color:#4CAF50;font-weight:bold'>{name}</span> (<span style='color:#888'>{email}</span>)",
+                        f"- <span style='color:#4CAF50;font-weight:bold'>{
+                            name
+                        }</span>"
+                        f"(<span style='color:#888'>{email}</span>)",
                         unsafe_allow_html=True,
                     )
             else:

@@ -1,9 +1,20 @@
-from uuid import UUID
 from datetime import datetime
-from app.domain.enums import UserRole , UserGrade
+from uuid import UUID
 
-class User :
-    def __init__(self, user_id : UUID, name: str , email: str, role: UserRole, grade: UserGrade, created_at : datetime, project_id : UUID):
+from app.domain.enums import UserGrade, UserRole
+
+
+class User:
+    def __init__(
+        self,
+        user_id: UUID,
+        name: str,
+        email: str,
+        role: UserRole,
+        grade: UserGrade,
+        created_at: datetime,
+        project_id: UUID,
+    ):
         self.user_id = user_id
         self.name = name
         self.email = email

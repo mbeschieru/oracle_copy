@@ -1,8 +1,10 @@
 from abc import ABC, abstractmethod
-from uuid import UUID
 from datetime import date
 from typing import List, Optional
+from uuid import UUID
+
 from app.domain.entities.absence import Absence
+
 
 class AbsenceRepositoryInterface(ABC):
     @abstractmethod
@@ -14,7 +16,9 @@ class AbsenceRepositoryInterface(ABC):
         pass
 
     @abstractmethod
-    def get_by_week(self, user_id: UUID, week_start: date) -> Optional[Absence]:
+    def get_by_week(
+        self, user_id: UUID, week_start: date
+    ) -> Optional[Absence]:
         pass
 
     @abstractmethod
@@ -22,7 +26,9 @@ class AbsenceRepositoryInterface(ABC):
         pass
 
     @abstractmethod
-    def approve(self, absence_id: UUID, manager_id: UUID, description: str) -> None:
+    def approve(
+        self, absence_id: UUID, manager_id: UUID, description: str
+    ) -> None:
         pass
 
     @abstractmethod
@@ -30,5 +36,7 @@ class AbsenceRepositoryInterface(ABC):
         pass
 
     @abstractmethod
-    def get_by_project_and_week(self, project_id: UUID, week_start: date) -> List[Absence]:
-        pass 
+    def get_by_project_and_week(
+        self, project_id: UUID, week_start: date
+    ) -> List[Absence]:
+        pass

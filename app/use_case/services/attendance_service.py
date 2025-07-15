@@ -1,5 +1,9 @@
 from uuid import UUID
-from app.domain.repositories.attendance_repository import AttendanceRepositoryInterface
+
+from app.domain.repositories.attendance_repository import (
+    AttendanceRepositoryInterface,
+)
+
 
 class AttendanceService:
 

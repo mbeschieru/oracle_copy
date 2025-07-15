@@ -68,7 +68,8 @@ def main_menu():
     )
     # User info display at top of each page
     st.info(
-        f"Logged in as: {user['name']} ({user['email']}) - Role: {user['role']}"
+        f"Logged in as: {user['name']} ({user['email']})"
+        f"- Role: {user['role']}"
     )
     if page == "Timesheets":
         from app.presentation.streamlit_app.components.timesheet import (

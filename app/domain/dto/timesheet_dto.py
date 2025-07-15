@@ -1,7 +1,9 @@
-from pydantic import BaseModel, Field, ConfigDict
-from uuid import UUID
 from datetime import date
 from typing import List
+from uuid import UUID
+
+from pydantic import BaseModel, ConfigDict, Field
+
 
 class TimeEntryDTO(BaseModel):
     day: date
@@ -9,9 +11,11 @@ class TimeEntryDTO(BaseModel):
     project_id: UUID
     description: str
 
+
 class TimesheetCreateDTO(BaseModel):
     week_start: date
     entries: List[TimeEntryDTO]
+
 
 class TimesheetReadDTO(BaseModel):
     timesheet_id: UUID
@@ -21,5 +25,4 @@ class TimesheetReadDTO(BaseModel):
     status: str
     status_description: str | None = None
     entries: List[TimeEntryDTO] = []
-
     model_config = ConfigDict(from_attributes=True)

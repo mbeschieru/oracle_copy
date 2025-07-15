@@ -1,21 +1,24 @@
 from uuid import UUID
-from app.domain.repositories.user_repository import UserRepositoryInterface
+
+from fastapi import HTTPException
+
 from app.domain.exceptions.base import DomainException
-from app.use_case.validators.role_validator import require_manager 
-from app.domain.entities.user import User
+from app.domain.repositories.user_repository import UserRepositoryInterface
+from app.use_case.validators.role_validator import require_manager
 
 
 def assert_user_identity_matches(payload_user_id: str, header_user_id: str):
     if str(payload_user_id) != str(header_user_id):
         raise HTTPException(
             status_code=403,
-            detail="User ID in request body does not match authenticated user"
+            detail="User ID in request body does not match authenticated user",
         )
+
 
 def assert_user_can_access_user(
     requester_id: UUID,
     target_user_id: UUID,
-    user_repo: UserRepositoryInterface
+    user_repo: UserRepositoryInterface,
 ):
     if requester_id == target_user_id:
         return
@@ -27,7 +30,7 @@ def assert_user_can_access_user(
         raise DomainException(
             message="Not Found",
             details="Requester or target user not found",
-            http_code=404
+            http_code=404,
         )
 
     require_manager(requester)  # verifică dacă requester e manager
@@ -36,5 +39,5 @@ def assert_user_can_access_user(
         raise DomainException(
             message="Permission denied",
             details="You may only view timesheets of users in your project.",
-            http_code=403
+            http_code=403,
         )

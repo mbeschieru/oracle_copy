@@ -68,11 +68,13 @@ def dashboard():
     for emp in employees:
         project_name = project_map.get(str(emp.get("project_id")), "-")
         st.markdown(
-            f"**{emp['name']}** (<a href='mailto:{emp['email']}'>{emp['email']}</a>)  ",
-            unsafe_allow_html=True,
+            f"**{emp['name']}** "
+            f"(<a href='mailto:{emp['email']}'>{emp['email']}</a>)",
+            unsafe_allow_html=True
         )
         st.markdown(
-            f"Role: {emp['role'].capitalize()} | Grade: {emp['grade']} | Project: {project_name}"
+            f"Role: {emp['role'].capitalize()} | Grade: {emp['grade']} |"
+            f" Project: {project_name}"
         )
         st.markdown("---")
 

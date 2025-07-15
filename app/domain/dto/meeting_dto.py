@@ -1,15 +1,17 @@
-from pydantic import BaseModel, ConfigDict
+from datetime import date, datetime, time
+from typing import List
 from uuid import UUID
-from datetime import datetime, date, time
-from typing import List, Optional
+
+from pydantic import BaseModel, ConfigDict
+
 
 class MeetingReadDTO(BaseModel):
     meeting_id: UUID
     title: str
     datetime: datetime
     duration_minutes: int
-    
     model_config = ConfigDict(from_attributes=True)
+
 
 class AttendanceReadDTO(BaseModel):
     attendance_id: UUID
@@ -21,8 +23,8 @@ class AttendanceReadDTO(BaseModel):
     check_in: time
     check_out: time
     time_spent: int  # in minutes
-    
     model_config = ConfigDict(from_attributes=True)
+
 
 class MeetingWithAttendanceDTO(BaseModel):
     meeting: MeetingReadDTO
@@ -32,6 +34,7 @@ class MeetingWithAttendanceDTO(BaseModel):
     page_size: int
     total_pages: int
 
+
 class PaginatedAttendanceDTO(BaseModel):
     attendances: List[AttendanceReadDTO]
     total_count: int
@@ -39,9 +42,10 @@ class PaginatedAttendanceDTO(BaseModel):
     page_size: int
     total_pages: int
     has_next: bool
-    has_previous: bool 
+    has_previous: bool
+
 
 class MeetingCreateDTO(BaseModel):
     title: str
     datetime: datetime
-    duration_minutes: int 
+    duration_minutes: int

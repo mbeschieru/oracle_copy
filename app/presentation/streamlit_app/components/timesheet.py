@@ -84,7 +84,9 @@ def dashboard():
     st.markdown(f"**Week starting:** {week_start}")
 
     # Load existing timesheet
-    ts_url = f"{BACKEND_URL}/timesheets/user/{target_user_id}/week?week_start={week_start}"
+    ts_url = f"{BACKEND_URL}/timesheets/user/{target_user_id}/week?week_start={
+        week_start
+    }"
     response = requests.get(ts_url, headers=get_auth_header())
 
     existing_timesheet = None
@@ -94,7 +96,7 @@ def dashboard():
     else:
         if user["role"] == "manager" and target_user_id != user["user_id"]:
             st.info(
-                f"{target_user_name} didn't submit their timesheet for this week."
+                f"{target_user_name} didn't submit their timesheet."
             )
         else:
             st.info(
@@ -114,7 +116,10 @@ def dashboard():
         }.get(status, "#FFD600")
         status_label = status.capitalize()
         st.markdown(
-            f'<span style="background-color:{status_color}; color:black; padding:4px 12px; border-radius:8px; font-weight:bold;">{status_label}</span>',
+            f'<span style="background-color:{status_color}; color:black;'
+            f'padding:4px 12px; border-radius:8px; font-weight:bold;">{
+                status_label
+            }</span>',
             unsafe_allow_html=True,
         )
         if status_desc:
@@ -139,7 +144,9 @@ def dashboard():
             col1, col2 = st.columns(2)
             with col1:
                 if st.button("✅ Approve Timesheet"):
-                    approve_url = f"{BACKEND_URL}/timesheets/approve/{existing_timesheet['timesheet_id']}"
+                    approve_url = f"{BACKEND_URL}/timesheets/approve/{
+                        existing_timesheet['timesheet_id']
+                    }"
                     resp = requests.post(
                         approve_url,
                         json={"description": approve_desc},
@@ -154,7 +161,9 @@ def dashboard():
                                 "detail", "Failed to approve timesheet"
                             )
                         except Exception:
-                            error_detail = f"Failed to approve timesheet (status {resp.status_code}): {resp.text}"
+                            error_detail = "Failed to approve timesheet"
+                            f"(status {resp.status_code}): {resp.text}"
+
                         st.error(f"❌ {error_detail}")
             with col2:
                 if st.button("❌ Decline Timesheet"):
@@ -167,7 +176,9 @@ def dashboard():
                                 "Please provide a reason for declining."
                             )
                         else:
-                            decline_url = f"{BACKEND_URL}/timesheets/decline/{existing_timesheet['timesheet_id']}"
+                            decline_url = f"{BACKEND_URL}/timesheets/decline/{
+                                existing_timesheet['timesheet_id']
+                            }"
                             resp = requests.post(
                                 decline_url,
                                 json={"description": decline_reason},
@@ -182,7 +193,8 @@ def dashboard():
                                         "detail", "Failed to decline timesheet"
                                     )
                                 except Exception:
-                                    error_detail = f"Failed to decline timesheet (status {resp.status_code}): {resp.text}"
+                                    error_detail = "Failed to decline"
+                                    f'(status {resp.status_code}): {resp.text}'
                                 st.error(f"❌ {error_detail}")
     # Only allow timesheet creation for self and not for managers
     elif (
@@ -219,7 +231,7 @@ def dashboard():
                 # Use standard entry if filled
                 std = st.session_state["standard_entries"][i]
                 entry_day = st.date_input(
-                    f"Day",
+                    "Day",
                     key=f"day_{i}",
                     value=(
                         std["day"] if std else week_start + timedelta(days=i)

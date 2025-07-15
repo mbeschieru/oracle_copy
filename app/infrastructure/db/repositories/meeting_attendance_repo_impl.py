@@ -1,10 +1,9 @@
+from typing import Optional
 from uuid import UUID
-from typing import List, Optional
 
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
-from app.infrastructure.config.db_config import SessionLocal
-from app.infrastructure.db.models.meeting_attendance_models import MeetingAttendanceModel
-from app.infrastructure.db.models.user_models import UserModel
+
 from app.domain.dto.meeting_attendance_dto import (
     MeetingAttendanceCreateDTO,
     MeetingAttendanceReadDTO,
@@ -14,7 +13,12 @@ from app.domain.enums.enums import AttendanceResponse
 from app.domain.repositories.meeting_attendance_repository import (
     MeetingAttendanceRepositoryInterface,
 )
-from fastapi import HTTPException
+from app.infrastructure.config.db_config import SessionLocal
+from app.infrastructure.db.models.meeting_attendance_models import (
+    MeetingAttendanceModel,
+)
+from app.infrastructure.db.models.user_models import UserModel
+
 
 class MeetingAttendanceRepository(MeetingAttendanceRepositoryInterface):
     """Concrete CRUD implementation for meeting‑attendance records."""
@@ -33,12 +37,20 @@ class MeetingAttendanceRepository(MeetingAttendanceRepositoryInterface):
 
     def create(self, dto: MeetingAttendanceCreateDTO, user_id: UUID):
         from app.infrastructure.db.models.meeting_models import MeetingModel
+
         with SessionLocal() as db:
             print(f"[DEBUG] Checking meeting_id: {dto.meeting_id}")
-            meeting = db.query(MeetingModel).filter(MeetingModel.meeting_id == str(dto.meeting_id)).first()
+            meeting = (
+                db.query(MeetingModel)
+                .filter(MeetingModel.meeting_id == str(dto.meeting_id))
+                .first()
+            )
             print(f"[DEBUG] Meeting found: {meeting is not None}")
             if not meeting:
-                raise HTTPException(status_code=404, detail="Meeting does not exist. Cannot create attendance.")
+                raise HTTPException(
+                    status_code=404,
+                    detail="Meeting does not exist. Cannot create attendance.",
+                )
             obj = MeetingAttendanceModel(
                 meeting_id=str(dto.meeting_id),
                 user_id=str(user_id),
@@ -51,10 +63,9 @@ class MeetingAttendanceRepository(MeetingAttendanceRepositoryInterface):
 
     def set_status(self, attendance_id: UUID, status: AttendanceResponse):
         with SessionLocal() as db:
-            obj: Optional[MeetingAttendanceModel] = (
-                db.query(MeetingAttendanceModel)
-                .get(str(attendance_id))
-            )
+            obj: Optional[MeetingAttendanceModel] = db.query(
+                MeetingAttendanceModel
+            ).get(str(attendance_id))
             if obj is None:
                 return None
             obj.status = status
@@ -66,7 +77,10 @@ class MeetingAttendanceRepository(MeetingAttendanceRepositoryInterface):
         with SessionLocal() as db:
             results = (
                 db.query(MeetingAttendanceModel, UserModel)
-                .join(UserModel, MeetingAttendanceModel.user_id == UserModel.user_id)
+                .join(
+                    UserModel,
+                    MeetingAttendanceModel.user_id == UserModel.user_id,
+                )
                 .filter(MeetingAttendanceModel.meeting_id == str(meeting_id))
                 .all()
             )
@@ -76,15 +90,17 @@ class MeetingAttendanceRepository(MeetingAttendanceRepositoryInterface):
                 if user.user_id in seen_users:
                     continue
                 seen_users.add(user.user_id)
-                dtos.append(MeetingAttendanceWithUserDTO(
-                    meeting_attendance_id=ma.meeting_attendance_id,
-                    meeting_id=ma.meeting_id,
-                    user_id=ma.user_id,
-                    status=ma.status,
-                    responded_at=ma.responded_at,
-                    user_name=user.name,
-                    user_email=user.email
-                ))
+                dtos.append(
+                    MeetingAttendanceWithUserDTO(
+                        meeting_attendance_id=ma.meeting_attendance_id,
+                        meeting_id=ma.meeting_id,
+                        user_id=ma.user_id,
+                        status=ma.status,
+                        responded_at=ma.responded_at,
+                        user_name=user.name,
+                        user_email=user.email,
+                    )
+                )
             return dtos
 
     def get_by_user_and_meeting(self, user_id: UUID, meeting_id: UUID):

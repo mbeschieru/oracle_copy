@@ -90,8 +90,6 @@ def meetings_dashboard():
 
                 st.markdown("---")
 
-                # Remove MeetingAttendance responses display here. Only show meeting details and attendance/time-tracking data.
-
                 # Pagination controls
                 col1, col2, col3 = st.columns([1, 2, 1])
                 with col1:
@@ -159,7 +157,9 @@ def meetings_dashboard():
 
                         with col2:
                             st.markdown(
-                                f"**Page {attendance_data['page']} of {attendance_data['total_pages']}**"
+                                f"**Page {attendance_data['page']} of {
+                                    attendance_data['total_pages']
+                                }**"
                             )
 
                         with col3:
@@ -170,7 +170,8 @@ def meetings_dashboard():
 
                         with col4:
                             st.markdown(
-                                f"**Total: {attendance_data['total_count']} records**"
+                                f"**Total: {attendance_data['total_count']}"
+                                f" records**"
                             )
 
                         # Summary statistics
@@ -184,7 +185,9 @@ def meetings_dashboard():
                         with col2:
                             st.metric(
                                 "Current Page",
-                                f"{attendance_data['page']}/{attendance_data['total_pages']}",
+                                f"{attendance_data['page']}/{
+                                    attendance_data['total_pages']
+                                }",
                             )
                         with col3:
                             st.metric("Records per Page", page_size)
@@ -196,12 +199,16 @@ def meetings_dashboard():
 
                 else:
                     st.error(
-                        f"Error fetching attendance data: {attendance_response.status_code}"
+                        f"Error fetching attendance data: {
+                            attendance_response.status_code
+                        }"
                     )
 
             else:
                 st.error(
-                    f"Error fetching meeting details: {meeting_response.status_code}"
+                    f"Error fetching meeting details: {
+                        meeting_response.status_code
+                    }"
                 )
 
         else:
@@ -209,7 +216,7 @@ def meetings_dashboard():
 
     except requests.exceptions.ConnectionError:
         st.error(
-            "❌ Cannot connect to the API server. Please make sure the server is running."
+            "❌ Cannot connect to the API server"
         )
     except Exception as e:
         st.error(f"❌ An error occurred: {str(e)}")
