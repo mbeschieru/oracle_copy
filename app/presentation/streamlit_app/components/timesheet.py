@@ -1,7 +1,7 @@
-import streamlit as st
-import requests
 from datetime import date, timedelta
-from uuid import uuid4
+
+import requests
+import streamlit as st
 
 if "user" not in st.session_state or st.session_state.user is None:
     st.warning("Please log in first.")
@@ -9,19 +9,24 @@ if "user" not in st.session_state or st.session_state.user is None:
 
 BACKEND_URL = "http://localhost:8000"
 
+
 # Helper to get auth header
 def get_auth_header():
     token = st.session_state.token
     return {"Authorization": f"Bearer {token}"}
 
+
 def get_week_start(selected_date):
     return selected_date - timedelta(days=selected_date.weekday())
+
 
 def dashboard():
     st.title("📊 My Timesheets")
 
     user = st.session_state.user
-    st.markdown(f"Logged in as **{user['name']}** ({user['role'].capitalize()})")
+    st.markdown(
+        f"Logged in as **{user['name']}** ({user['role'].capitalize()})"
+    )
 
     # Manager: select employee
     target_user_id = user["user_id"]
@@ -32,12 +37,23 @@ def dashboard():
         # Get employees by project
         params = {"offset": 0, "limit": 10}
         emp_url = f"{BACKEND_URL}/users/by_project/{user['project_id']}"
-        emp_resp = requests.get(emp_url, params=params, headers=get_auth_header())
+        emp_resp = requests.get(
+            emp_url, params=params, headers=get_auth_header()
+        )
         employees = emp_resp.json() if emp_resp.status_code == 200 else []
-        emp_options = {f"{e['name']} ({e['email']})": (e["user_id"], e.get("project_id"), e["name"]) for e in employees}
+        emp_options = {
+            f"{e['name']} ({e['email']})": (
+                e["user_id"],
+                e.get("project_id"),
+                e["name"],
+            )
+            for e in employees
+        }
         if emp_options:
             selected = st.selectbox("Employee", list(emp_options.keys()))
-            target_user_id, target_user_project_id, target_user_name = emp_options[selected]
+            target_user_id, target_user_project_id, target_user_name = (
+                emp_options[selected]
+            )
         else:
             st.info("No employees found for your project.")
             return
@@ -46,7 +62,7 @@ def dashboard():
     if "ts_week_start" not in st.session_state:
         st.session_state["ts_week_start"] = get_week_start(date.today())
     week_start = st.session_state["ts_week_start"]
-    col_prev, col_date, col_next = st.columns([1,2,1])
+    col_prev, col_date, col_next = st.columns([1, 2, 1])
     with col_prev:
         if st.button("⬅️ Previous week", key="ts_prev_week"):
             st.session_state["ts_week_start"] = week_start - timedelta(days=7)
@@ -56,7 +72,11 @@ def dashboard():
             st.session_state["ts_week_start"] = week_start + timedelta(days=7)
             st.rerun()
     with col_date:
-        selected_date = st.date_input("📅 Select week (Monday only)", value=week_start, key="ts_date_input")
+        selected_date = st.date_input(
+            "📅 Select week (Monday only)",
+            value=week_start,
+            key="ts_date_input",
+        )
         if selected_date.weekday() == 0 and selected_date != week_start:
             st.session_state["ts_week_start"] = selected_date
             st.rerun()
@@ -73,9 +93,13 @@ def dashboard():
         st.success("✅ Existing timesheet loaded.")
     else:
         if user["role"] == "manager" and target_user_id != user["user_id"]:
-            st.info(f"{target_user_name} didn't submit their timesheet for this week.")
+            st.info(
+                f"{target_user_name} didn't submit their timesheet for this week."
+            )
         else:
-            st.info("📝 No timesheet found for this week. You can create one below.")
+            st.info(
+                "📝 No timesheet found for this week. You can create one below."
+            )
 
     # Show submitted timesheet entries if one exists
     if existing_timesheet:
@@ -86,10 +110,13 @@ def dashboard():
         status_color = {
             "pending": "#FFD600",  # yellow
             "accepted": "#00C853",  # green
-            "declined": "#D50000"   # red
+            "declined": "#D50000",  # red
         }.get(status, "#FFD600")
         status_label = status.capitalize()
-        st.markdown(f'<span style="background-color:{status_color}; color:black; padding:4px 12px; border-radius:8px; font-weight:bold;">{status_label}</span>', unsafe_allow_html=True)
+        st.markdown(
+            f'<span style="background-color:{status_color}; color:black; padding:4px 12px; border-radius:8px; font-weight:bold;">{status_label}</span>',
+            unsafe_allow_html=True,
+        )
         if status_desc:
             st.info(f"Status note: {status_desc}")
         for i, entry in enumerate(existing_timesheet.get("entries", []), 1):
@@ -99,37 +126,61 @@ def dashboard():
                 st.markdown(f"**Project ID:** {entry['project_id']}")
                 st.markdown(f"**Description:** {entry['description']}")
         # Manager can approve/decline if status is pending
-        if user["role"] == "manager" and target_user_id != user["user_id"] and status == "pending":
-            approve_desc = st.text_input("Approval description (optional)", value="All ok", key="approve_desc")
+        if (
+            user["role"] == "manager"
+            and target_user_id != user["user_id"]
+            and status == "pending"
+        ):
+            approve_desc = st.text_input(
+                "Approval description (optional)",
+                value="All ok",
+                key="approve_desc",
+            )
             col1, col2 = st.columns(2)
             with col1:
                 if st.button("✅ Approve Timesheet"):
                     approve_url = f"{BACKEND_URL}/timesheets/approve/{existing_timesheet['timesheet_id']}"
-                    resp = requests.post(approve_url, json={"description": approve_desc}, headers=get_auth_header())
+                    resp = requests.post(
+                        approve_url,
+                        json={"description": approve_desc},
+                        headers=get_auth_header(),
+                    )
                     if resp.status_code == 200:
                         st.success("✅ Timesheet approved!")
                         st.rerun()
                     else:
                         try:
-                            error_detail = resp.json().get('detail', 'Failed to approve timesheet')
+                            error_detail = resp.json().get(
+                                "detail", "Failed to approve timesheet"
+                            )
                         except Exception:
                             error_detail = f"Failed to approve timesheet (status {resp.status_code}): {resp.text}"
                         st.error(f"❌ {error_detail}")
             with col2:
                 if st.button("❌ Decline Timesheet"):
-                    decline_reason = st.text_area("Reason for decline", key="decline_reason_popup")
+                    decline_reason = st.text_area(
+                        "Reason for decline", key="decline_reason_popup"
+                    )
                     if st.button("Submit Decline", key="submit_decline"):
                         if not decline_reason.strip():
-                            st.warning("Please provide a reason for declining.")
+                            st.warning(
+                                "Please provide a reason for declining."
+                            )
                         else:
                             decline_url = f"{BACKEND_URL}/timesheets/decline/{existing_timesheet['timesheet_id']}"
-                            resp = requests.post(decline_url, json={"description": decline_reason}, headers=get_auth_header())
+                            resp = requests.post(
+                                decline_url,
+                                json={"description": decline_reason},
+                                headers=get_auth_header(),
+                            )
                             if resp.status_code == 200:
                                 st.success("❌ Timesheet declined!")
                                 st.rerun()
                             else:
                                 try:
-                                    error_detail = resp.json().get('detail', 'Failed to decline timesheet')
+                                    error_detail = resp.json().get(
+                                        "detail", "Failed to decline timesheet"
+                                    )
                                 except Exception:
                                     error_detail = f"Failed to decline timesheet (status {resp.status_code}): {resp.text}"
                                 st.error(f"❌ {error_detail}")
@@ -137,7 +188,10 @@ def dashboard():
     elif (
         user["role"] != "manager"
         and target_user_id == user["user_id"]
-        and (not existing_timesheet or not existing_timesheet.get("approved", False))
+        and (
+            not existing_timesheet
+            or not existing_timesheet.get("approved", False)
+        )
     ):
         st.subheader("Add Time Entries")
 
@@ -152,8 +206,9 @@ def dashboard():
                     "day": d,
                     "hours": 8.0,
                     "project_id": target_user_project_id or "",
-                    "description": "Worked 8 hours"
-                } for d in week_days
+                    "description": "Worked 8 hours",
+                }
+                for d in week_days
             ]
 
         st.button("Complete Standard", on_click=fill_standard)
@@ -163,27 +218,56 @@ def dashboard():
             with st.expander(f"Entry #{i+1}"):
                 # Use standard entry if filled
                 std = st.session_state["standard_entries"][i]
-                entry_day = st.date_input(f"Day", key=f"day_{i}", value=std["day"] if std else week_start + timedelta(days=i))
-                hours = st.number_input("Hours", min_value=0.0, max_value=24.0, step=0.5, key=f"hours_{i}", value=std["hours"] if std else 0.0)
+                entry_day = st.date_input(
+                    f"Day",
+                    key=f"day_{i}",
+                    value=(
+                        std["day"] if std else week_start + timedelta(days=i)
+                    ),
+                )
+                hours = st.number_input(
+                    "Hours",
+                    min_value=0.0,
+                    max_value=24.0,
+                    step=0.5,
+                    key=f"hours_{i}",
+                    value=std["hours"] if std else 0.0,
+                )
                 # Auto-complete project_id
-                project_id = st.text_input("Project ID (UUID)", value=std["project_id"] if std else target_user_project_id or "", key=f"project_{i}", disabled=True)
-                description = st.text_input("Description", key=f"description_{i}", value=std["description"] if std else "")
+                project_id = st.text_input(
+                    "Project ID (UUID)",
+                    value=(
+                        std["project_id"]
+                        if std
+                        else target_user_project_id or ""
+                    ),
+                    key=f"project_{i}",
+                    disabled=True,
+                )
+                description = st.text_input(
+                    "Description",
+                    key=f"description_{i}",
+                    value=std["description"] if std else "",
+                )
 
                 if hours and project_id and description:
-                    entries.append({
-                        "day": str(entry_day),
-                        "hours": hours,
-                        "project_id": project_id,
-                        "description": description
-                    })
+                    entries.append(
+                        {
+                            "day": str(entry_day),
+                            "hours": hours,
+                            "project_id": project_id,
+                            "description": description,
+                        }
+                    )
         can_create = week_start.weekday() == 0
         if st.button("📤 Submit Timesheet", disabled=not can_create):
-            payload = {
-                "week_start": str(week_start),
-                "entries": entries
-            }
+            payload = {"week_start": str(week_start), "entries": entries}
             try:
-                res = requests.post(f"{BACKEND_URL}/timesheets", json=payload, headers=get_auth_header())
+                res = requests.post(
+                    f"{BACKEND_URL}/timesheets",
+                    json=payload,
+                    headers=get_auth_header(),
+                )
                 if res.status_code == 200:
                     st.success("✅ Timesheet submitted!")
                     st.rerun()
@@ -192,4 +276,6 @@ def dashboard():
             except Exception as e:
                 st.error(f"🚫 Could not connect to backend: {e}")
     elif target_user_id == user["user_id"] and user["role"] != "manager":
-        st.warning("🚫 Timesheet already submitted and approved for this week.")
+        st.warning(
+            "🚫 Timesheet already submitted and approved for this week."
+        )
