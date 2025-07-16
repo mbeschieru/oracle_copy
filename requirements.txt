@@ -2,12 +2,10 @@ fastapi
 uvicorn
 pydantic
 sqlalchemy
-alembic
 psycopg2-binary
 streamlit
 streamlit-calendar
 python-dotenv
-streamlit
 alembic
 pyodbc
 pydantic[email]
@@ -15,3 +13,7 @@ python-jose[cryptography]
 passlib
 bcrypt==4.0.1
 python-multipart
+black
+flake8
+autoflake
+isort

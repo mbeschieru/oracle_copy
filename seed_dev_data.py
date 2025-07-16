@@ -2,7 +2,6 @@ from app.infrastructure.config.db_config import SessionLocal
 from app.infrastructure.db.models.user_models import UserModel
 from app.infrastructure.db.models.project_models import ProjectModel
 from app.infrastructure.config.jwt_config import get_password_hash
-from datetime import datetime, timezone
 import uuid
 
 print("🚀 Starting basic seed process...")
