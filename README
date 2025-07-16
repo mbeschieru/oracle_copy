@@ -1,0 +1,140 @@
+# Timesheet Application
+
+A simple template for a FastAPI + Streamlit application backed by SQL Server.  
+It provides:
+
+- **API** backend served by Uvicorn (FastAPI)  
+- **Web UI** served by Streamlit  
+- **Migrations** and **seeding** via Alembic and custom Python scripts  
+- **Containerized** database in Docker Compose  
+- **Automated** startup in a `tmux` session for development convenience  
+
+---
+
+## Table of Contents
+
+1. [Features](#features)  
+2. [Prerequisites](#prerequisites)  
+3. [Environment](#environment)  
+4. [Getting Started](#getting-started)  
+5. [Database Migrations & Seeding](#database-migrations--seeding)  
+6. [Running the App](#running-the-app)  
+7. [Project Structure](#project-structure)  
+
+---
+
+## Features
+
+- **FastAPI** backend (`app.main:app`)  
+- **Streamlit** front end (`app/presentation/streamlit_app`)  
+- **Alembic** for schema migrations (auto-generated revisions)  
+- **Seeding** scripts for development data  
+- **Docker Compose** for SQL Server  
+- **Automatic** tmux session manager to run both services side by side  
+
+---
+
+## Prerequisites
+
+- [Docker & Docker Compose](https://docs.docker.com/compose/)  
+- Python 3.8+  
+- `tmux` (the startup script will auto-install it if missing)  
+- `alembic` and `sqlcmd` (packaged in `mssql-tools`)  
+
+---
+
+## Environment
+
+1. Create a file named `.env` and update as needed:
+
+   ```ini
+   # .env
+   DATABASE_URL=mssql+pyodbc://sa:MySecure@123@timesheet-mssql:1433/your_db_name?driver=ODBC+Driver+17+for+SQL+Server
+
+   SECRET_KEY= 'generate your own jwt from a public website' for example *SECRET_KEY=59064f86b7ca4aeaf128cb00fee892f9*
+   
+2. Make sure the SA_PASSWORD in .env matches the one in docker-compose.yml:
+# docker-compose.yml excerpt
+environment:
+  - SA_PASSWORD=MySecure@123
+
+
+
+//////////////// Getting Started \\\\\\\\\\\\\\\\
+
+1. Clone the repo and enter its directory:
+git clone https://github.com/mbeschieru/oracle_copy.git
+cd oracle_copy
+
+2. Create & activate a virtual environment:
+
+python -m venv venv
+source venv/bin/activate
+
+3. Install Python dependencies:
+pip install -r requirements.txt
+
+
+
+//////////////// **Database Migrations & Seeding** \\\\\\\\\\\\\\\\
+
+All database setup is handled by the migrations.sh script:
+
+----  ./migrations.sh "your migration message" ----
+
+What it does:
+
+# Stops and removes any existing SQL Server container.
+
+# Starts a fresh SQL Server via Docker Compose.
+
+# Creates the database if it doesn’t exist.
+
+# Cleans old Alembic revisions under alembic/versions/.
+
+# Generates a new Alembic migration (alembic revision --autogenerate -m "<message>").
+
+# Applies all migrations (alembic upgrade head).
+
+# Seeds the database with development data:
+
+-seed_dev_data.py
+
+-populate_davaX.py
+
+-populate_meeting_and_attendance.py
+
+Launches your application services in a tmux session via start.sh.
+
+//////////////// **Running the App** \\\\\\\\\\\\\\\\
+
+After migrations.sh finishes, you’ll be attached to a tmux session named dev-session with two panes:
+
+Pane 1:  PYTHONPATH=$(pwd) streamlit run app/presentation/streamlit_app/main.py
+
+Pane 2:  uvicorn app.main:app --reload
+
+
+Detach from tmux with Ctrl-b d. Re-attach anytime with:   tmux attach -t dev-session
+
+
+
+
+//////////////// **Project Structure** \\\\\\\\\\\\\\\\
+
+.
+├── alembic/
+│   └── versions/           # auto-generated migration scripts
+├── app/
+│   ├── main.py             # FastAPI entrypoint
+│   └── presentation/
+│       └── streamlit_app/  # Streamlit app
+├── .env.example
+├── docker-compose.yml
+├── migrations.sh           # full migration + seed + start pipeline
+├── start.sh                # tmux launcher for Streamlit and Uvicorn
+├── seed_dev_data.py
+├── populate_davaX.py
+├── populate_meeting_and_attendance.py
+├── requirements.txt
+└── README.md

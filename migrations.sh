@@ -56,3 +56,12 @@ sleep 10
 python populate_meeting_and_attendance.py
 
 echo "✅ DONE! Database created, schema migrated, and data seeded."
+
+# --- Next step: start services in tmux ---
+if [ ! -x "./start.sh" ]; then
+  echo "⚠️  start.sh is not executable. Making it executable now..."
+  chmod +x ./start.sh
+fi
+
+echo "🚀 Launching application in tmux via start.sh..."
+./start.sh
