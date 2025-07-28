@@ -20,3 +20,4 @@ class AbsenceModel(Base):
     reason = Column(String(255), nullable=False)
     status = Column(String(20), default="pending")
     status_description = Column(String(255), nullable=True)
+
