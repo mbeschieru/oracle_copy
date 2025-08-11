@@ -1,25 +1,25 @@
 # Timesheet Application
 
-A simple template for a FastAPI + Streamlit application backed by SQL Server.  
-It provides:
+A full-stack Timesheet Management application built with **FastAPI** and **Streamlit**, designed for employee attendance tracking, project planning, and data reporting.
 
-- **API** backend served by Uvicorn (FastAPI)  
-- **Web UI** served by Streamlit  
-- **Migrations** and **seeding** via Alembic and custom Python scripts  
-- **Containerized** database in Docker Compose  
-- **Automated** startup in a `tmux` session for development convenience  
+It is structured following **Clean Architecture** principles to promote scalability, modularity, and maintainability.  
+The app supports user role-based actions, attendance logging, meeting coordination, and calendar-based visualization.
 
 ---
 
 ## Table of Contents
 
 1. [Features](#features)  
-2. [Prerequisites](#prerequisites)  
-3. [Environment](#environment)  
-4. [Getting Started](#getting-started)  
-5. [Database Migrations & Seeding](#database-migrations--seeding)  
-6. [Running the App](#running-the-app)  
-7. [Project Structure](#project-structure)  
+2. [Requirements](#requirements)  
+3. [Prerequisites](#prerequisites)  
+4. [Environment](#environment)  
+5. [Getting Started](#getting-started)  
+6. [Database Migrations & Seeding](#database-migrations--seeding)  
+7. [Running the App](#running-the-app)  
+8. [Code Architecture](#code-architecture)  
+9. [Clean Architecture](#clean-architecture)  
+10. [Project Structure](#project-structure)  
+11. [Development Notes](#development-notes)  
 
 ---
 
@@ -31,6 +31,26 @@ It provides:
 - **Seeding** scripts for development data  
 - **Docker Compose** for SQL Server  
 - **Automatic** tmux session manager to run both services side by side  
+
+---
+
+## Requirements
+
+### Functional
+
+- Record timesheets and absences
+- Manage meetings and attendances
+- View employee calendars
+- Import/export CSV data
+- Role-based user operations (admin, employee)
+
+### Non-functional
+
+- Follows PEP8 coding standards
+- Modular & testable architecture (Clean Architecture)
+- Dockerized for isolated dev environment
+- Low latency REST API (under 500ms typical)
+- Logs for backend and frontend in development
 
 ---
 
@@ -52,89 +72,173 @@ It provides:
    DATABASE_URL=mssql+pyodbc://sa:MySecure@123@timesheet-mssql:1433/your_db_name?driver=ODBC+Driver+17+for+SQL+Server
 
    SECRET_KEY= 'generate your own jwt from a public website' for example *SECRET_KEY=59064f86b7ca4aeaf128cb00fee892f9*
-   
-2. Make sure the SA_PASSWORD in .env matches the one in docker-compose.yml:
-# docker-compose.yml excerpt
-environment:
-  - SA_PASSWORD=MySecure@123
+   ```
 
+2. Make sure the `SA_PASSWORD` in `.env` matches the one in `docker-compose.yml`:
+   ```yaml
+   # docker-compose.yml excerpt
+   environment:
+     - SA_PASSWORD=MySecure@123
+   ```
 
+---
 
-//////////////// Getting Started \\\\\\\\\\\\\\\\
+## Getting Started
 
 1. Clone the repo and enter its directory:
-git clone https://github.com/mbeschieru/oracle_copy.git
-cd oracle_copy
+   ```bash
+   git clone https://github.com/mbeschieru/oracle_copy.git
+   cd oracle_copy
+   ```
 
 2. Create & activate a virtual environment:
-
-python -m venv venv
-source venv/bin/activate
+   ```bash
+   python -m venv venv
+   source venv/bin/activate
+   ```
 
 3. Install Python dependencies:
-pip install -r requirements.txt
+   ```bash
+   pip install -r requirements.txt
+   ```
 
+---
 
+## Database Migrations & Seeding
 
-//////////////// **Database Migrations & Seeding** \\\\\\\\\\\\\\\\
+All database setup is handled by the `migrations.sh` script:
 
-All database setup is handled by the migrations.sh script:
-
-----  ./migrations.sh "your migration message" ----
+```bash
+./migrations.sh "your migration message"
+```
 
 What it does:
 
-# Stops and removes any existing SQL Server container.
+- Stops and removes any existing SQL Server container
+- Starts a fresh SQL Server via Docker Compose
+- Creates the database if it doesn’t exist
+- Cleans old Alembic revisions under `alembic/versions/`
+- Generates a new Alembic migration:
+  ```bash
+  alembic revision --autogenerate -m "<message>"
+  ```
+- Applies all migrations:
+  ```bash
+  alembic upgrade head
+  ```
+- Seeds the database with development data using:
+  - `seed_dev_data.py`
+  - `populate_davaX.py`
+  - `populate_meeting_and_attendance.py`
+- Launches app services in a `tmux` session via `start.sh`
 
-# Starts a fresh SQL Server via Docker Compose.
+---
 
-# Creates the database if it doesn’t exist.
+## Running the App
 
-# Cleans old Alembic revisions under alembic/versions/.
+After `migrations.sh` finishes, you’ll be attached to a `tmux` session named `dev-session` with two panes:
 
-# Generates a new Alembic migration (alembic revision --autogenerate -m "<message>").
+- **Pane 1**:  
+  ```bash
+  PYTHONPATH=$(pwd) streamlit run app/presentation/streamlit_app/main.py
+  ```
 
-# Applies all migrations (alembic upgrade head).
+- **Pane 2**:  
+  ```bash
+  uvicorn app.main:app --reload
+  ```
 
-# Seeds the database with development data:
+You can detach from `tmux` with `Ctrl-b d`.  
+Re-attach anytime with:  
+```bash
+tmux attach -t dev-session
+```
 
--seed_dev_data.py
+---
 
--populate_davaX.py
+## Code Architecture
 
--populate_meeting_and_attendance.py
+The application follows Object-Oriented Programming (OOP) principles. It implements:
 
-Launches your application services in a tmux session via start.sh.
+- **Repository Pattern** – abstracts data access logic
+- **Service Layer** – separates business logic from controllers
+- **DTOs (Data Transfer Objects)** – manage structured data transfer between layers
 
-//////////////// **Running the App** \\\\\\\\\\\\\\\\
+---
 
-After migrations.sh finishes, you’ll be attached to a tmux session named dev-session with two panes:
+## Clean Architecture
 
-Pane 1:  PYTHONPATH=$(pwd) streamlit run app/presentation/streamlit_app/main.py
+This project is structured based on [Clean Architecture](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html) by Robert C. Martin (Uncle Bob), promoting separation of concerns and maintainability.
 
-Pane 2:  uvicorn app.main:app --reload
+The main layers:
+- **Domain**: DTOs, entities, repositories (interfaces)
+- **Use Case**: Business logic and validators
+- **Infrastructure**: ORM models, repository implementations
+- **Presentation**: REST API and Streamlit UI
 
-
-Detach from tmux with Ctrl-b d. Re-attach anytime with:   tmux attach -t dev-session
-
-
-
+---
 
 //////////////// **Project Structure** \\\\\\\\\\\\\\\\
 
 .
-├── alembic/
-│   └── versions/           # auto-generated migration scripts
-├── app/
-│   ├── main.py             # FastAPI entrypoint
-│   └── presentation/
-│       └── streamlit_app/  # Streamlit app
-├── .env.example
-├── docker-compose.yml
-├── migrations.sh           # full migration + seed + start pipeline
-├── start.sh                # tmux launcher for Streamlit and Uvicorn
-├── seed_dev_data.py
-├── populate_davaX.py
-├── populate_meeting_and_attendance.py
-├── requirements.txt
-└── README.md
+├── .gitignore                         # standard Git ignore rules
+├── README                             # main documentation file
+├── alembic/                           # Alembic configuration for DB migrations
+│   ├── env.py                         # sets up Alembic with SQLAlchemy
+│   ├── script.py.mako                 # template for generating migration versions
+│   └── versions/                      # auto-generated migration scripts
+│       └── 177a952177b6_fix_schema.py
+├── alembic.ini                        # Alembic settings file
+├── app/                               # main application source code
+│   ├── __init__.py
+│   ├── main.py                        # FastAPI entrypoint
+│   ├── domain/                        # domain logic layer and contracts
+│   │   ├── dto/                       # Data Transfer Objects (DTOs)
+│   │   │   └── *.py
+│   │   ├── entities/                  # core business entities
+│   │   │   └── *.py
+│   │   ├── enums/                     # centralized enum definitions
+│   │   │   └── enums.py
+│   │   ├── exceptions/                # domain-specific exception classes
+│   │   │   └── *.py
+│   │   └── repositories/              # data access interfaces (Repository Pattern)
+│   │       └── *.py
+│   ├── infrastructure/                # infrastructure layer (DB, configs, implementations)
+│   │   ├── config/                    # JWT, DB and general configs
+│   │   │   └── *.py
+│   │   ├── db/                        # database access layer
+│   │   │   ├── models/                # SQLAlchemy ORM models
+│   │   │   │   └── *.py
+│   │   │   └── repositories/          # repository implementations
+│   │   │       └── *.py
+│   │   └── dependencies.py            # dependency injection helpers
+│   ├── presentation/                  # presentation layer (REST API + Streamlit)
+│   │   ├── api/                       # FastAPI controllers (routes)
+│   │   │   └── *.py
+│   │   ├── dependencies/              # auth and shared middlewares
+│   │   │   └── jwt_auth.py
+│   │   └── streamlit_app/             # Streamlit-based user interface
+│   │       ├── components/            # reusable visual components
+│   │       │   └── *.py
+│   │       └── main.py                # entrypoint for the Streamlit UI
+│   └── use_case/                      # use cases and application logic
+│       ├── services/                  # business services for entities
+│       │   └── *.py
+│       └── validators/                # access control and validation logic
+│           └── *.py
+├── backend.log                        # backend logs
+├── frontend.log                       # frontend logs
+├── davaX_data/                        # sample / seed data (CSV)
+│   └── ETL*.csv
+├── docker-compose.yml                # Docker setup for SQL Server
+├── delete_meeting_and_attendances.py # utility script for cleanup
+├── intructions.txt                   # additional usage instructions
+├── migrations.sh                     # full migration + seeding + startup
+├── migrations_mac.sh                 # macOS version of migration script
+├── open_terminals.sh                 # launches UI + API in terminals
+├── populate_davaX.py                 # seeding script for dummy data
+├── populate_meeting_and_attendance.py# seeding script for meetings
+├── requirements.txt                  # Python dependencies
+├── run_all.sh                        # one-liner script to start everything
+└──  seed_dev_data.py                  # development seeding logic
+
